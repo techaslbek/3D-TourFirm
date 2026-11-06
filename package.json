@@ -1,0 +1,35 @@
+{
+  "name": "tourfirm-office-sandbox",
+  "private": true,
+  "version": "0.2.0",
+  "description": "Interactive 3D design sandbox for a travel agency office in Tashkent",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --port 4173 --strictPort",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "node tests/e2e/smoke.mjs",
+    "validate:layout": "node tools/validate-layout.mjs data/layouts/concept-a.json",
+    "plan:svg": "node tools/render-plan.mjs data/layouts/concept-a.json docs/phase-1/floor-plan-concept-a.svg"
+  },
+  "dependencies": {
+    "@react-three/drei": "10.7.9",
+    "@react-three/fiber": "9.8.2",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "three": "0.187.0",
+    "zustand": "5.0.16"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@types/three": "0.187.0",
+    "@vitejs/plugin-react": "6.2.1",
+    "playwright": "1.63.0",
+    "typescript": "5.9.3",
+    "vite": "8.3.6",
+    "vitest": "5.1.0"
+  }
+}

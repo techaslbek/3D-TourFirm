@@ -161,6 +161,7 @@ const wallPos = (w) => {
     case 'back': return [w.at, D, 'h'];
     case 'front': return [w.at, 0, 'h'];
     case 'partition-east': return [2.35, w.at, 'v'];
+    case 'partition-west': return [2.25, w.at, 'v'];
     default: return null; // inside storage room: listed in legend only
   }
 };
@@ -172,9 +173,9 @@ L.wallItems.forEach((w, k) => {
   if (!p) return;
   const [x, y, o] = p;
   const half = (w.width / 2) * S;
-  const inward = (w.wall === 'right') ? -1 : 1;
+  const inward = (w.wall === 'right' || w.wall === 'partition-west') ? -1 : 1;
   if (o === 'v') {
-    const xx = X(x) + (w.wall === 'right' ? -4 : 4);
+    const xx = X(x) + inward * 4;
     const outside = w.wall === 'left' || w.wall === 'right';
     add(`<line x1="${xx}" y1="${Y(y) - half}" x2="${xx}" y2="${Y(y) + half}" stroke="#1f4e8c" stroke-width="5" stroke-linecap="round" opacity=".85"/>`);
     const mx = outside ? xx - inward * (T + 18) : xx + inward * 13;

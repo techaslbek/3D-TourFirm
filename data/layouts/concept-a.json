@@ -627,8 +627,8 @@
     {
       "id": "hooks-staff",
       "label": "Staff coat hooks",
-      "wall": "storage-inside",
-      "at": 3.1,
+      "wall": "partition-west",
+      "at": 4.45,
       "width": 0.6,
       "z0": 1.6,
       "z1": 1.8
@@ -654,11 +654,11 @@
     {
       "id": "router",
       "label": "Router / Wi-Fi + network shelf",
-      "wall": "storage-inside",
-      "at": 4.5,
+      "wall": "left",
+      "at": 5.25,
       "width": 0.4,
-      "z0": 1.9,
-      "z1": 2.2
+      "z0": 1.95,
+      "z1": 2.25
     }
   ],
   "ceiling": [
