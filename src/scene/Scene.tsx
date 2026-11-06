@@ -4,6 +4,7 @@ import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { CameraRig } from '../controls/CameraRig';
 import { debug } from '../debug';
+import { sceneHooks } from '../ui/exports';
 import { useStore, type Quality } from '../state/store';
 import { Architecture } from './Architecture';
 import { DPR, Effects, Exterior, Lighting, Overlays } from './Environment';
@@ -73,6 +74,21 @@ function FrameStats() {
 function DebugHooks() {
   const get = useThree((s) => s.get);
   useEffect(() => {
+    sceneHooks.capture = (scale) => {
+      const { gl, scene, camera, size } = get();
+      const ratio = gl.getPixelRatio();
+      gl.setPixelRatio(ratio * scale);
+      gl.setSize(size.width, size.height, false);
+      gl.render(scene, camera);
+      // toBlob copies the drawing buffer synchronously, before the browser can clear it.
+      const blob = new Promise<Blob>((resolve, reject) => gl.domElement.toBlob((b) => (b ? resolve(b) : reject(new Error('Screenshot failed'))), 'image/png'));
+      gl.setPixelRatio(ratio);
+      gl.setSize(size.width, size.height, false);
+      return blob;
+    };
+    sceneHooks.objects = () => ['architecture', 'furniture', 'wall-items', 'exterior']
+      .map((n) => get().scene.getObjectByName(n))
+      .filter((o): o is THREE.Object3D => !!o);
     debug.project = (x, y, h = 0) => {
       const { camera, size } = get();
       const v = new THREE.Vector3(x, h, -y).project(camera);

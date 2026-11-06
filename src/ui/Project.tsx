@@ -3,7 +3,8 @@ import { parseProject } from '../core/project';
 import { checkAccess, findConflicts, type AccessResult } from '../core/validate';
 import { deleteVersion, listVersions, loadVersion, saveVersion, type VersionRecord } from '../state/persist';
 import { useStore } from '../state/store';
-import { useT } from './i18n';
+import { budgetCsv, glb, inViewer, planPng, planSvg, safeName, saveFile, screenshotBlob, type SaveResult } from './exports';
+import { useT, type TKey } from './i18n';
 
 /** Project tab: named versions (browser storage), JSON export/import, start again. */
 export function ProjectTab() {
@@ -117,6 +118,7 @@ export function ProjectTab() {
           </ul>
         )}
       </section>
+      <ExportSection />
       <section>
         <h3>JSON</h3>
         <div className="btn-row">
@@ -184,6 +186,46 @@ export function ChecksSection() {
         </div>
       )}
       <p className="note">{t('checksNote')}</p>
+    </section>
+  );
+}
+
+/** Export section: screenshots, floor plan, budget CSV and (locally) a GLB 3D model. */
+function ExportSection() {
+  const t = useT();
+  const set = useStore((s) => s.set);
+  const [busy, setBusy] = useState<string | null>(null);
+  const viewer = inViewer();
+  const MSG: Record<SaveResult, TKey> = { saved: 'exportSaved', declined: 'exportDeclined', unavailable: 'exportUnavailable', rejected: 'exportUnavailable' };
+  const run = async (key: string, make: () => Promise<Blob | string>, ext: string) => {
+    setBusy(key);
+    try {
+      const s = useStore.getState();
+      const stamp = new Date().toISOString().slice(0, 10);
+      const res = await saveFile(`${safeName(s.projectName)}-${key}-${stamp}.${ext}`, await make());
+      set({ notice: t(MSG[res]) });
+    } catch (e) {
+      set({ notice: `${t('exportFailed')}: ${(e as Error).message}` });
+    } finally {
+      setBusy(null);
+    }
+  };
+  const btn = (key: string, label: TKey, make: () => Promise<Blob | string>, ext: string) => (
+    <button data-export={key} disabled={!!busy} onClick={() => run(key, make, ext)}>{busy === key ? '…' : t(label)}</button>
+  );
+  return (
+    <section>
+      <h3>{t('exportTitle')}</h3>
+      <div className="btn-row">
+        {btn('view', 'exportScreenshot', () => screenshotBlob(1), 'png')}
+        {btn('view-2x', 'exportScreenshotHq', () => screenshotBlob(2), 'png')}
+        {btn('plan', 'exportPlanSvg', async () => new Blob([planSvg()], { type: 'image/svg+xml' }), 'svg')}
+        {btn('plan-png', 'exportPlanPng', () => planPng(2), 'png')}
+        {btn('budget', 'exportCsv', async () => new Blob([budgetCsv()], { type: 'text/csv' }), 'csv')}
+        {!viewer && btn('model', 'exportGlb', async () => new Blob([await glb()], { type: 'model/gltf-binary' }), 'glb')}
+      </div>
+      {viewer && <p className="note">{t('glbLocalOnly')}</p>}
+      <p className="note">{t('exportNote2')}</p>
     </section>
   );
 }

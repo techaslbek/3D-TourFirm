@@ -5,6 +5,7 @@ import { findConflicts } from '../core/validate';
 import { useStore, type CeilingMode, type PanelTab, type Quality, type WallMode } from '../state/store';
 import { BudgetTab } from './Budget';
 import { DesignTab, Inspector } from './Editor';
+import { Joystick } from './Joystick';
 import { useT, type Lang, type TKey } from './i18n';
 import { isTypingTarget } from './keys';
 import { ChecksSection, ProjectTab } from './Project';
@@ -27,6 +28,7 @@ export function Ui() {
       <SidePanel />
       <Inspector />
       <WalkHud />
+      <Joystick />
       <Toast />
       <FpsBadge />
       <HelpOverlay />
@@ -264,6 +266,14 @@ function SettingsTab() {
           <input id="walk-speed" type="range" min={0.5} max={4} step={0.1} value={s.walkSpeed} onChange={(e) => s.set({ walkSpeed: +e.target.value })} />
         </label>
         <Check label={t('collision')} checked={s.collision} onChange={(v) => s.set({ collision: v })} />
+        <label className="row">
+          <span>{t('joystick')}</span>
+          <select id="joystick" value={s.joystick} onChange={(e) => s.set({ joystick: e.target.value as 'auto' | 'on' | 'off' })}>
+            <option value="auto">{t('auto')}</option>
+            <option value="on">{t('on')}</option>
+            <option value="off">{t('off')}</option>
+          </select>
+        </label>
       </section>
       <section>
         <h3>{t('quality')}</h3>

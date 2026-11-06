@@ -2,7 +2,7 @@
 
 A browser-based, interactive 3D planning tool for a future travel agency office in Tashkent. It is used to walk through, redesign and budget the space before renting and furnishing a real unit. It runs locally, needs no account, server or paid service, and works offline once installed.
 
-**Current phase: 4 (design editor), awaiting review.** See [docs/phase-4/README.md](docs/phase-4/README.md). New session? Start with [docs/HANDOFF.md](docs/HANDOFF.md).
+**Status: all five phases built and tested.** Final report: [docs/phase-5/README.md](docs/phase-5/README.md) · Simple instructions: [docs/USER-GUIDE.md](docs/USER-GUIDE.md). New session? Start with [docs/HANDOFF.md](docs/HANDOFF.md).
 
 ## Run it on your computer (Windows, macOS or Linux)
 
@@ -37,7 +37,8 @@ npm run preview
 | `npm run typecheck` | TypeScript type check |
 | `npm run test:e2e` | Browser smoke test against the build (needs `npm run build` and Playwright's Chromium: `npx playwright install chromium`) |
 | `npm run validate:layout` | Geometry check of the layout data (overlaps, clearances, routes) |
-| `npm run plan:svg` | Regenerates the 2D floor plan SVG |
+| `npm run plan:svg` | Regenerates the 2D floor plan SVG (Node 22.18+ runs the shared TypeScript renderer directly) |
+| `npm run build:artifact` | Builds one self-contained HTML file for publishing as a claude.ai page |
 
 ## Project structure
 

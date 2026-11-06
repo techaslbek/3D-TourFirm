@@ -268,3 +268,25 @@ describe('budget and project files', () => {
     expect(() => parseProject({ ...data, layout: { ...DEFAULT_LAYOUT, items: [{ id: 'x' }] } })).toThrow(/item 1/);
   });
 });
+
+describe('floor plan export', () => {
+  it('draws every visible floor item, numbered, with the room dimensions', async () => {
+    const { renderPlanSvg } = await import('./planSvg');
+    const svg = renderPlanSvg(DEFAULT_LAYOUT, { title: 'Test <plan>' });
+    expect(svg.startsWith('<svg')).toBe(true);
+    expect(svg).toContain('Test &lt;plan&gt;');
+    expect(svg).toContain('10.00 m (interior, assumed)');
+    const floor = DEFAULT_LAYOUT.items.filter((i) => i.layer !== 'rug').length;
+    expect(svg).toContain(`>${floor}</text>`);
+  });
+
+  it('leaves hidden items out and grows the sheet for long legends', async () => {
+    const { renderPlanSvg } = await import('./planSvg');
+    const { updateItem } = await import('./edit');
+    const L = updateItem(DEFAULT_LAYOUT, 'sofa', { hidden: true });
+    expect(renderPlanSvg(L)).not.toContain('3-seat sofa');
+    const many = { ...DEFAULT_LAYOUT, items: [...DEFAULT_LAYOUT.items, ...DEFAULT_LAYOUT.items.map((i) => ({ ...i, id: `${i.id}-copy` }))] };
+    const h = Number(renderPlanSvg(many).match(/height="(\d+)"/)![1]);
+    expect(h).toBeGreaterThan(750);
+  });
+});

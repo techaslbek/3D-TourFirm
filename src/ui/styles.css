@@ -200,3 +200,12 @@ textarea.json { width: 100%; min-height: 70px; font: 11px/1.3 ui-monospace, Cons
   .panel, .panel.wide { width: auto; }
   .inspector { left: 6px; right: 6px; width: auto; max-height: 55vh; }
 }
+
+/* ---------- Phase 5 ---------- */
+.joystick {
+  position: fixed; right: max(24px, env(safe-area-inset-right, 0px)); bottom: calc(70px + env(safe-area-inset-bottom, 0px)); z-index: 18;
+  width: 120px; height: 120px; border-radius: 50%; touch-action: none;
+  background: color-mix(in srgb, var(--panel) 70%, transparent); border: 2px solid var(--line); box-shadow: var(--shadow);
+  display: grid; place-items: center;
+}
+.joystick .knob { width: 48px; height: 48px; border-radius: 50%; background: var(--accent); opacity: .85; pointer-events: none; transition: transform 40ms linear; }

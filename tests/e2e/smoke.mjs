@@ -8,7 +8,7 @@ import { chromium } from 'playwright';
 
 const PORT = 4173;
 const BASE = `http://localhost:${PORT}/`;
-const OUT = process.env.SCREENSHOTS ?? 'docs/phase-4/screenshots';
+const OUT = process.env.SCREENSHOTS ?? 'docs/phase-5/screenshots';
 mkdirSync(OUT, { recursive: true });
 
 const results = [];
@@ -294,16 +294,43 @@ try {
   check(sideX === 0.6, `Autosave restores the design after a reload (side table x = ${sideX})`);
   await page.evaluate(() => window.__tourfirm.getState().set({ quality: 'balanced' }));
 
+  // ---------- Phase 5: exports and joystick ----------
+  const ex = await page.evaluate(async () => {
+    const e = window.__tourfirm.exports;
+    return { svg: e.planSvg(), csv: e.budgetCsv(), glb: await e.glbSize(), png: await e.screenshotSize() };
+  });
+  check(ex.svg.startsWith('<svg') && ex.svg.includes('ENTRANCE'), `Floor plan SVG export (${Math.round(ex.svg.length / 1024)} kB)`);
+  check(ex.csv.includes('Total') && ex.csv.includes('3-seat sofa'), 'Budget CSV export lists items and totals');
+  check(ex.glb > 100000, `GLB 3D model export (${Math.round(ex.glb / 1024)} kB)`);
+  check(ex.png > 20000, `Screenshot PNG export (${Math.round(ex.png / 1024)} kB)`);
+  await page.click('[data-tab=project]');
+  const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 30000 }), page.click('[data-export=plan]')]);
+  check(dl.suggestedFilename().endsWith('.svg'), `Export button downloads a file (${dl.suggestedFilename()})`);
+  await shot('25-project-export');
+
+  await page.evaluate(() => window.__tourfirm.getState().set({ joystick: 'on', quality: 'low', walkSpeed: 3 }));
+  await preset('entrance');
+  const y0 = (await state()).walk.y;
+  const jb = await page.getByTestId('joystick').boundingBox();
+  await page.mouse.move(jb.x + jb.width / 2, jb.y + jb.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(jb.x + jb.width / 2, jb.y + 4);
+  await frames(15);
+  await page.mouse.up();
+  const y1 = (await state()).walk.y;
+  check(y1 > y0 + 0.2, `On-screen joystick walks forward (${y0.toFixed(2)} → ${y1.toFixed(2)} m)`);
+  await page.evaluate(() => window.__tourfirm.getState().set({ joystick: 'auto', quality: 'balanced', walkSpeed: 1.4 }));
+
   // Help overlay
   await page.keyboard.press('h');
   check(await page.locator('.modal').isVisible(), 'H opens the controls guide');
-  await shot('23-help');
+  await shot('26-help');
   await page.keyboard.press('Escape');
 
   // Phone-sized viewport
   await page.setViewportSize({ width: 390, height: 844 });
   await preset('overview');
-  await shot('24-phone-overview');
+  await shot('27-phone-overview');
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   check(!overflow, 'No horizontal page overflow at phone width');
 

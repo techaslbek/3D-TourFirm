@@ -31,6 +31,8 @@ interface Settings {
   /** Grid step for moving furniture, in metres (0 = off). */
   grid: number;
   snapWalls: boolean;
+  /** On-screen walking joystick: auto = touch screens only. */
+  joystick: 'auto' | 'on' | 'off';
 }
 
 export interface AppState extends Settings {
@@ -90,7 +92,7 @@ const SETTINGS_KEY = 'tourfirm.settings.v1';
 const defaults: Settings = {
   lang: 'en', quality: 'balanced', autoQuality: true, eyeHeight: 1.6, walkSpeed: 1.4, collision: true, showFps: false,
   brandName: 'YOUR BRAND', brandTagline: 'Travel', destinations: ['Maldives', 'Turkey', 'Vietnam', 'Egypt', 'China'],
-  grid: 0.05, snapWalls: true,
+  grid: 0.05, snapWalls: true, joystick: 'auto',
 };
 
 function loadSettings(): Settings {
@@ -259,7 +261,7 @@ useStore.subscribe((s) => {
     lang: s.lang, quality: s.quality, autoQuality: s.autoQuality, eyeHeight: s.eyeHeight,
     walkSpeed: s.walkSpeed, collision: s.collision, showFps: s.showFps,
     brandName: s.brandName, brandTagline: s.brandTagline, destinations: s.destinations,
-    grid: s.grid, snapWalls: s.snapWalls,
+    grid: s.grid, snapWalls: s.snapWalls, joystick: s.joystick,
   };
   try {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));

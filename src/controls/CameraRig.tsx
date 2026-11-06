@@ -6,6 +6,7 @@ import { walkBounds, walkColliders } from '../core/layout';
 import { useStore } from '../state/store';
 import { debug } from '../debug';
 import { isTypingTarget } from '../ui/keys';
+import { touchInput } from './touchInput';
 
 /** Layout (x, y, height) to Three.js (x, height, -y). */
 const L2T = (p: [number, number, number]): [number, number, number] => [p[0], p[2], -p[1]];
@@ -149,11 +150,13 @@ function WalkRig() {
     const p = pose.current;
     const turn = (k.has('KeyQ') || k.has('ArrowLeft') ? 1 : 0) - (k.has('KeyE') || k.has('ArrowRight') ? 1 : 0);
     p.yaw += turn * 1.8 * dt;
-    const fwd = (k.has('KeyW') || k.has('ArrowUp') ? 1 : 0) - (k.has('KeyS') || k.has('ArrowDown') ? 1 : 0);
-    const strafe = (k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0);
-    if (fwd || strafe) {
+    const clamp1 = (v: number) => Math.max(-1, Math.min(1, v));
+    const fwd = clamp1((k.has('KeyW') || k.has('ArrowUp') ? 1 : 0) - (k.has('KeyS') || k.has('ArrowDown') ? 1 : 0) + touchInput.y);
+    const strafe = clamp1((k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0) + touchInput.x);
+    if (Math.abs(fwd) > 0.05 || Math.abs(strafe) > 0.05) {
       const run = k.has('ShiftLeft') || k.has('ShiftRight') ? 2 : 1;
-      const len = Math.hypot(fwd, strafe);
+      // Keyboard input is full speed in any direction; the joystick scales speed with deflection.
+      const len = Math.max(1, Math.hypot(fwd, strafe));
       const v = (walkSpeed * run * dt) / len;
       // Layout frame: forward = (-sin yaw, cos yaw), right = (cos yaw, sin yaw)
       const dx = (-Math.sin(p.yaw) * fwd + Math.cos(p.yaw) * strafe) * v;
