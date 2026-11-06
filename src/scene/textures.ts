@@ -399,3 +399,47 @@ export function lagan() {
     return t;
   });
 }
+
+/** Large-format stone/porcelain tiles, 600 × 600 mm (one texture tile = 2.4 m). */
+export function stoneTiles() {
+  return cached('stoneTiles', () => {
+    const size = 1024, r = rng(41);
+    const { c, g } = canvas(size, size);
+    const n = 4, t = size / n;
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+      const l = 84 + r() * 4;
+      g.fillStyle = hsl(35, 8, l);
+      g.fillRect(i * t, j * t, t, t);
+      for (let k = 0; k < 60; k++) {
+        g.fillStyle = `rgba(90,80,70,${r() * 0.05})`;
+        g.beginPath(); g.arc(i * t + r() * t, j * t + r() * t, 4 + r() * 22, 0, Math.PI * 2); g.fill();
+      }
+    }
+    g.strokeStyle = 'rgba(70,60,50,0.45)';
+    g.lineWidth = 2;
+    for (let k = 0; k <= n; k++) {
+      g.beginPath(); g.moveTo(k * t, 0); g.lineTo(k * t, size); g.stroke();
+      g.beginPath(); g.moveTo(0, k * t); g.lineTo(size, k * t); g.stroke();
+    }
+    return toTexture(c);
+  });
+}
+
+/** Carpet tiles 500 × 500 mm laid quarter-turn (one texture tile = 2.4 m, close enough visually). */
+export function carpetTiles() {
+  return cached('carpetTiles', () => {
+    const size = 1024, r = rng(17);
+    const { c, g } = canvas(size, size);
+    const n = 5, t = size / n;
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+      g.fillStyle = hsl(215, 10, 70 + r() * 6);
+      g.fillRect(i * t, j * t, t, t);
+      const vertical = (i + j) % 2 === 0;
+      for (let k = 0; k < t; k += 3) {
+        g.fillStyle = `rgba(30,40,60,${0.04 + r() * 0.08})`;
+        if (vertical) g.fillRect(i * t + k, j * t, 1.5, t); else g.fillRect(i * t, j * t + k, t, 1.5);
+      }
+    }
+    return toTexture(c);
+  });
+}

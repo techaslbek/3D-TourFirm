@@ -1,5 +1,6 @@
 import { Canvas, useFrame } from '@react-three/fiber';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
+import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { CameraRig } from '../controls/CameraRig';
 import { debug } from '../debug';
@@ -21,7 +22,7 @@ export function Scene() {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
         gl.toneMappingExposure = 1.0;
       }}
-      onPointerMissed={() => useStore.getState().set({ inspected: null })}
+      onPointerMissed={(e) => { if (e.button === 0 && !useStore.getState().dragging) useStore.getState().set({ selected: null }); }}
     >
       <color attach="background" args={['#dfe7ec']} />
       <fog attach="fog" args={['#dfe7ec', 35, 90]} />
@@ -34,6 +35,7 @@ export function Scene() {
       <CameraRig />
       <Effects />
       <FrameStats />
+      <DebugHooks />
     </Canvas>
   );
 }
@@ -64,5 +66,18 @@ function FrameStats() {
       s.set({ quality: STEP_DOWN[s.quality], qualityNotice: 'qualityLowered' });
     }
   });
+  return null;
+}
+
+/** Lets tests convert layout coordinates to screen pixels (read-only helper). */
+function DebugHooks() {
+  const get = useThree((s) => s.get);
+  useEffect(() => {
+    debug.project = (x, y, h = 0) => {
+      const { camera, size } = get();
+      const v = new THREE.Vector3(x, h, -y).project(camera);
+      return [((v.x + 1) / 2) * size.width + size.left, ((1 - v.y) / 2) * size.height + size.top];
+    };
+  }, [get]);
   return null;
 }

@@ -31,13 +31,14 @@ Style: cozy, contemporary, with restrained authentic Uzbek accents (one carpet, 
 - **Phase 0–1 done:** brief, dimensioned plan (`data/layouts/concept-a.json` is the single source of truth), layout validator, budget, site-visit checklist.
 - **Phase 2 done:** Vite + React + TypeScript + Three.js (React Three Fiber, Drei) + Zustand. Orbit / Walk (WASD, collision) / Plan / Dollhouse, camera presets, editable room size, EN/UZ/RU, quality tiers. 18 unit tests, 17-check Playwright smoke test. Report: `docs/phase-2/README.md`.
 - **Phase 3 done:** parametric furniture, procedural Uzbek accents (carpet, suzani, lattice, Rishtan ceramics, ikat), PBR materials, slat ceiling, warm lighting, contact shadows, editable brand/destinations. Report: `docs/phase-3/README.md`. N8AO ambient occlusion was removed (crashes with three r187).
+- **Phase 4 done:** editor (select, drag with grid/wall snapping, rotate 90°, add from 32-item catalogue, duplicate, delete, hide, resize, colour, model swap), finishes (floor, walls, feature wall, ceiling), light warmth/brightness, live collision checks + access check, undo/redo, autosave + named versions (IndexedDB), JSON export/import, budget panel (USD/UZS, verified flags). Report: `docs/phase-4/README.md`.
 - Published as a private claude.ai page: https://claude.ai/artifact/Mui9MVEQ5iGmGBzLMGFUM2 (rebuild with `npm run build:artifact`, which writes one self-contained HTML file).
 
-## Next: Phase 4 (editor)
+## Next: Phase 5 (polish and exports)
 1. Still ask the owner for the FPS number (Balanced) and laptop model.
-2. Select, move, rotate (snap to grid and walls), add from a catalogue, duplicate, delete. Collision and clearance warnings using `tools/validate-layout.mjs` logic.
-3. Material and colour editing per object; floor, wall and ceiling finishes.
-4. Undo/redo, named versions in IndexedDB, JSON import/export, budget panel (UZS/USD, verified vs placeholder).
+2. Exports: screenshot PNG, floor-plan SVG/PNG with dimensions (reuse `tools/render-plan.mjs` logic), optional GLB.
+3. Touch joystick for walking; free-angle rotation if requested; wall-item editing; code splitting.
+4. Full test pass, production build, final report.
 
 Phase 5 = polish, exports (screenshots, floor plan, GLB), touch joystick, performance.
 

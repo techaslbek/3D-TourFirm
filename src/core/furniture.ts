@@ -1,3 +1,4 @@
+import { catalogById } from './catalog';
 import type { Item } from './types';
 
 /** Model kinds with a dedicated parametric model. Unknown items fall back to 'generic'. */
@@ -19,7 +20,9 @@ const BY_PREFIX: [string, ModelKind][] = [
   ['cleaning', 'cleaning-cupboard'], ['printer', 'printer'], ['safe', 'safe'], ['bin', 'bin'],
 ];
 
-export function modelKind(item: Pick<Item, 'id' | 'cat'>): ModelKind {
+export function modelKind(item: Pick<Item, 'id' | 'cat' | 'catalogId'>): ModelKind {
+  const fromCatalog = catalogById(item.catalogId);
+  if (fromCatalog) return fromCatalog.kind;
   const hit = BY_PREFIX.find(([p]) => item.id.startsWith(p));
   if (hit) return hit[1];
   if (item.cat === 'plants') return 'plant';

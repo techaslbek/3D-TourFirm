@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { DOOR_HEIGHT, exteriorWalls, PARTITION_DOOR_HEIGHT, wallPieces, WALL_THICKNESS, type ExteriorWall } from '../core/geometry';
 import type { Layout, Partition } from '../core/types';
-import { isCeilingRect } from '../core/types';
+import { DEFAULT_FINISHES, isCeilingRect } from '../core/types';
 import { useStore, type WallMode } from '../state/store';
 import { FasciaSign } from './Environment';
 import { floorMaterial, M, wallMaterial } from './materials';
@@ -36,7 +36,8 @@ export function Architecture() {
 
 function Floor({ layout }: { layout: Layout }) {
   const { width: W, depth: D } = layout.room;
-  const material = useMemo(() => floorMaterial(W, D), [W, D]);
+  const finish = layout.finishes?.floor ?? DEFAULT_FINISHES.floor;
+  const material = useMemo(() => floorMaterial(W, D, finish), [W, D, finish]);
   useEffect(() => () => { material.map?.dispose(); material.dispose(); }, [material]);
   return (
     <mesh name="floor" rotation-x={-Math.PI / 2} position={[W / 2, 0, -D / 2]} material={material} receiveShadow>
@@ -58,8 +59,10 @@ function wallBox(wall: ExteriorWall, u0: number, u1: number, v0: number, v1: num
 function ExteriorWallMesh({ wall, height }: { wall: ExteriorWall; height: number }) {
   const full = useRef<THREE.Group>(null);
   const stub = useRef<THREE.Group>(null);
-  // The left (lounge) wall is the warm sand feature wall from the concept palette.
-  const material = useMemo(() => wallMaterial(wall.id === 'left' ? '#e2cdae' : PALETTE.ivory), [wall.id]);
+  // The left (lounge) wall is the feature wall; colours come from the editable finishes.
+  const finishes = useStore((s) => s.layout.finishes ?? DEFAULT_FINISHES);
+  const color = wall.id === 'left' ? finishes.feature : finishes.wall;
+  const material = useMemo(() => wallMaterial(color), [color]);
   const stubMaterial = useMemo(() => new THREE.MeshStandardMaterial({ color: PALETTE.sand, roughness: 0.9 }), []);
   const wallMode = useStore((s) => s.wallMode);
   const cameraMode = useStore((s) => s.cameraMode);
@@ -215,6 +218,9 @@ function EntranceDoor({ layout }: { layout: Layout }) {
 }
 
 function PartitionMesh({ p, height }: { p: Partition; height: number }) {
+  const color = useStore((s) => (s.layout.finishes ?? DEFAULT_FINISHES).wall);
+  const partitionMat = useMemo(() => wallMaterial(color), [color]);
+  useEffect(() => () => partitionMat.dispose(), [partitionMat]);
   const horizontal = p.x1 - p.x0 >= p.y1 - p.y0;
   const pieces = useMemo(
     () => wallPieces(horizontal ? p.x0 : p.y0, horizontal ? p.x1 : p.y1, height, p.openings.map((o) => ({ u0: o.x0, u1: o.x1, v0: 0, v1: PARTITION_DOOR_HEIGHT }))),
@@ -228,7 +234,7 @@ function PartitionMesh({ p, height }: { p: Partition; height: number }) {
           ? [(s.u0 + s.u1) / 2, (s.v0 + s.v1) / 2, -(p.y0 + p.y1) / 2]
           : [(p.x0 + p.x1) / 2, (s.v0 + s.v1) / 2, -(s.u0 + s.u1) / 2];
         return (
-          <mesh key={k} position={pos} material={partitionMaterial()} castShadow receiveShadow>
+          <mesh key={k} position={pos} material={partitionMat} castShadow receiveShadow>
             <boxGeometry args={size} />
           </mesh>
         );
@@ -264,9 +270,12 @@ function Ceiling({ layout }: { layout: Layout }) {
     return pts;
   }, [W, D]);
   const rafts = layout.ceiling.filter(isCeilingRect);
+  const ceilingColor = (layout.finishes ?? DEFAULT_FINISHES).ceiling;
+  const ceilingMat = useMemo(() => wallMaterial(ceilingColor), [ceilingColor]);
+  useEffect(() => () => ceilingMat.dispose(), [ceilingMat]);
   return (
     <group name="ceiling" visible={visible}>
-      <mesh rotation-x={Math.PI / 2} position={[W / 2, H, -D / 2]} castShadow material={ceilingMaterial()}>
+      <mesh rotation-x={Math.PI / 2} position={[W / 2, H, -D / 2]} castShadow material={ceilingMat}>
         <planeGeometry args={[W + 0.4, D + 0.4]} />
       </mesh>
       {rafts.map((r) => <SlatRaft key={r.id} x0={r.x0} x1={r.x1} y0={r.y0} y1={r.y1} y={H - 0.25} />)}
@@ -282,15 +291,6 @@ function Ceiling({ layout }: { layout: Layout }) {
     </group>
   );
 }
-
-const partitionMaterial = (() => {
-  let m: THREE.Material | null = null;
-  return () => (m ??= wallMaterial(PALETTE.ivory));
-})();
-const ceilingMaterial = (() => {
-  let m: THREE.Material | null = null;
-  return () => (m ??= wallMaterial('#f6f1e8'));
-})();
 
 /** Oak slat ceiling raft on black acoustic felt (slats 40 mm wide at 80 mm centres). */
 function SlatRaft({ x0, x1, y0, y1, y }: { x0: number; x1: number; y0: number; y1: number; y: number }) {

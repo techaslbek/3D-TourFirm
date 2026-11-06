@@ -8,7 +8,7 @@ import { chromium } from 'playwright';
 
 const PORT = 4173;
 const BASE = `http://localhost:${PORT}/`;
-const OUT = process.env.SCREENSHOTS ?? 'docs/phase-3/screenshots';
+const OUT = process.env.SCREENSHOTS ?? 'docs/phase-4/screenshots';
 mkdirSync(OUT, { recursive: true });
 
 const results = [];
@@ -48,7 +48,7 @@ const shot = async (name) => { await frames(6); await page.screenshot({ path: `$
 const preset = async (id) => { await page.evaluate((p) => window.__tourfirm.getState().applyPreset(p), id); await frames(4); };
 
 try {
-  await page.goto(`${BASE}?auto=0&quality=balanced`);
+  await page.goto(`${BASE}?auto=0&quality=balanced&fresh=1`);
   await page.waitForFunction(() => window.__tourfirm && window.__tourfirm.frames > 10, null, { timeout: 60000 });
   const hasGl = await page.evaluate(() => {
     const c = document.querySelector('canvas');
@@ -64,6 +64,7 @@ try {
     check((await state()).mode === mode, `Toolbar switches to ${mode} mode`);
     await shot(name);
   }
+  await page.click('[data-tab=room]');
   await page.getByLabel('Zones').check();
   await page.getByLabel('Grid (0.5 m)').check();
   await shot('04-plan-zones-grid');
@@ -93,13 +94,16 @@ try {
   await page.getByTestId('door-open').uncheck();
   await preset('street');
   await page.keyboard.down('w');
-  // Hold W until the walker stops moving (or 40 s), so the check measures the door, not time.
-  let last = -99;
-  for (let i = 0; i < 40; i++) {
+  // Hold W until the walker stops moving: no progress over at least 10 rendered frames (or 60 s).
+  // Counting frames, not seconds, keeps this reliable when software rendering is slow.
+  let last = { y: -99, frames: 0 };
+  for (let i = 0; i < 60; i++) {
     await page.waitForTimeout(1000);
-    const y = (await state()).walk.y;
-    if (Math.abs(y - last) < 0.005) break;
-    last = y;
+    const cur = await state();
+    if (cur.frames - last.frames >= 10) {
+      if (Math.abs(cur.walk.y - last.y) < 0.005) break;
+      last = { y: cur.walk.y, frames: cur.frames };
+    }
   }
   await page.keyboard.up('w');
   s = await state();
@@ -109,7 +113,7 @@ try {
   // Turning and strafing
   await preset('entrance');
   const yaw0 = (await state()).walk.yaw;
-  await page.keyboard.down('q'); await page.waitForTimeout(1500); await page.keyboard.up('q');
+  await page.keyboard.down('q'); await frames(10); await page.keyboard.up('q');
   check((await state()).walk.yaw > yaw0 + 0.2, 'Q turns the walker left');
 
   await page.evaluate(() => window.__tourfirm.getState().set({ quality: 'balanced', walkSpeed: 1.4 }));
@@ -122,6 +126,7 @@ try {
 
   // Room resizing rebuilds geometry; shrinking flags furniture outside
   await preset('dollhouse');
+  await page.click('[data-tab=room]');
   await page.fill('[data-testid=room-width]', '12');
   await page.fill('[data-testid=room-depth]', '7');
   await frames(6);
@@ -155,6 +160,7 @@ try {
   await page.selectOption('[data-testid=lang]', 'en');
 
   // Brand editing updates the placeholder brand everywhere
+  await page.click('[data-tab=brand]');
   await page.fill('[data-testid=brand-name]', 'Silk Road Travel');
   await frames(4);
   s = await state();
@@ -165,16 +171,139 @@ try {
   await page.fill('[data-testid=brand-name]', 'YOUR BRAND');
   await page.evaluate(() => document.activeElement?.blur());
 
+  // ---------- Phase 4: editor ----------
+  // Low quality keeps software rendering responsive in the GPU-less test container.
+  await page.evaluate(() => window.__tourfirm.getState().set({ quality: 'low' }));
+  await page.click('[data-tab=design]');
+  const st = () => page.evaluate(() => {
+    const s = window.__tourfirm.getState();
+    return { selected: s.selected, past: s.past.length, future: s.future.length, items: s.layout.items, conflicts: null };
+  });
+  const item = async (id) => (await st()).items.find((i) => i.id === id);
+  await preset('plan');
+  await frames(6);
+  // Click selects, drag moves (with snapping), one undo step
+  let [sx, sy] = await page.evaluate(() => window.__tourfirm.project(2.0, 1.95, 0.42));
+  await page.mouse.click(sx, sy);
+  await frames(3);
+  check((await st()).selected === 'coffee-table', 'Clicking furniture selects it');
+  check(await page.getByTestId('inspector').isVisible(), 'Inspector opens for the selected item');
+  [sx, sy] = await page.evaluate(() => window.__tourfirm.project(2.0, 1.95, 0.42));
+  const [tx] = await page.evaluate(() => window.__tourfirm.project(2.3, 1.95, 0.42));
+  await page.mouse.move(sx, sy);
+  await page.mouse.down();
+  for (let k = 1; k <= 6; k++) { await page.mouse.move(sx + ((tx - sx) * k) / 6, sy); await frames(1); }
+  await page.mouse.up();
+  await frames(3);
+  let ct = await item('coffee-table');
+  check(Math.abs(ct.x - 2.3) < 0.051 && ct.y === 1.95, `Dragging moves the selected item (x = ${ct.x} m, snapped)`);
+  await shot('18-editor-plan-drag');
+  await page.click('[data-testid=undo]');
+  ct = await item('coffee-table');
+  const fut = (await st()).future;
+  check(ct.x === 2 && fut === 1, `Undo restores the previous position (x = ${ct.x}, redo steps = ${fut})`);
+  await page.click('[data-testid=redo]');
+  ct = await item('coffee-table');
+  check(Math.abs(ct.x - 2.3) < 0.051, 'Redo re-applies the move');
+  await page.keyboard.press('Control+z');
+
+  // Rotate, colour, duplicate, delete
+  await page.click('[data-testid=rotate-right]');
+  ct = await item('coffee-table');
+  check(ct.faces === '+x' && ct.w === 0.6 && ct.d === 1, 'Rotate turns the item 90° and swaps its footprint');
+  await page.keyboard.press('Control+z');
+  await page.click('.inspector .swatch >> nth=5');
+  ct = await item('coffee-table');
+  check(!!ct.color, `Colour swatch sets a finish colour (${ct.color})`);
+  const n0 = (await st()).items.length;
+  await page.click('[data-testid=duplicate]');
+  let s1 = await st();
+  check(s1.items.length === n0 + 1 && s1.selected !== 'coffee-table', `Duplicate adds a copy (${s1.selected})`);
+  await page.click('[data-testid=delete]');
+  s1 = await st();
+  check(s1.items.length === n0 && s1.selected === null, 'Delete removes the selected item');
+
+  // Add from the catalogue
+  await page.click('details.cat:has-text("Seating") summary');
+  await page.click('[data-catalog=armchair]');
+  s1 = await st();
+  const added = s1.items.find((i) => i.id === s1.selected);
+  check(s1.items.length === n0 + 1 && added?.catalogId === 'armchair', `Catalogue adds an armchair at a free spot (${added?.x}, ${added?.y})`);
+  const badge = await page.getByTestId('checks-badge').textContent();
+  check(badge.includes('✓'), `New item is placed without collisions (badge "${badge.trim()}")`);
+
+  // Collision warning: move the new armchair onto the sofa via the inspector
+  await page.fill('[data-testid=item-x]', '2');
+  await page.fill('[data-testid=item-y]', '0.75');
+  await frames(3);
+  const badge2 = await page.getByTestId('checks-badge').textContent();
+  check(badge2.includes('⚠'), `Overlap is flagged in the toolbar (badge "${badge2.trim()}")`);
+  await shot('19-editor-collision-warning');
+  await page.click('[data-testid=delete]');
+
+  // Finishes
+  await page.selectOption('#floor-finish', 'stone');
+  check((await page.evaluate(() => window.__tourfirm.getState().layout.finishes?.floor)) === 'stone', 'Floor finish can be changed');
+  await preset('dollhouse');
+  await shot('20-editor-stone-floor');
+  await page.keyboard.press('Control+z');
+
+  // Access check
+  await page.click('[data-tab=room]');
+  await page.click('[data-testid=access-check]');
+  await page.waitForSelector('[data-testid=access-result]', { timeout: 30000 });
+  const access = await page.getByTestId('access-result').textContent();
+  check(!access.includes('Cannot be reached'), 'Access check: everything reachable from the entrance');
+
+  // Budget
+  await page.click('[data-tab=budget]');
+  const total1 = await page.getByTestId('budget-total').textContent();
+  await page.fill('table.budget input[aria-label="3-seat sofa Unit $"]', '600');
+  const total2 = await page.getByTestId('budget-total').textContent();
+  check(total1 !== total2 && total2.includes('$'), 'Editing a price updates the budget total');
+  await shot('21-budget');
+
+  // Versions: save, change, load back
+  await page.click('[data-tab=project]');
+  await page.fill('[data-testid=project-name]', 'Test version A');
+  await page.click('[data-testid=save-version]');
+  await page.waitForSelector('[data-testid=versions] li', { timeout: 10000 });
+  await page.evaluate(() => window.__tourfirm.getState().moveItem('sofa', 2.0, 1.0));
+  await page.click('[data-testid=versions] li >> text=Load');
+  await frames(2);
+  const sofa = await item('sofa');
+  check(sofa.y === 0.75, 'Loading a saved version restores it');
+  await shot('22-project-versions');
+
+  // JSON import (paste)
+  const json = await page.evaluate(() => JSON.stringify({ ...window.__tourfirm.getState().toProject('Imported test'), }));
+  await page.fill('[data-testid=paste-json]', json);
+  await page.click('[data-testid=import-pasted]');
+  check((await page.evaluate(() => window.__tourfirm.getState().projectName)) === 'Imported test', 'Pasted JSON project is imported');
+  await page.fill('[data-testid=paste-json]', '{"hello": 1}');
+  await page.click('[data-testid=import-pasted]');
+  check(await page.locator('[role=alert]').isVisible(), 'Invalid JSON shows a clear error');
+
+  // Autosave survives a reload
+  await page.evaluate(() => window.__tourfirm.getState().moveItem('side-table', 0.6, 0.75));
+  await page.evaluate(() => window.__tourfirm.flushAutosave());
+  await page.goto(`${BASE}?auto=0&quality=low`);
+  await page.waitForFunction(() => window.__tourfirm && window.__tourfirm.frames > 3, null, { timeout: 60000 });
+  await page.waitForFunction(() => window.__tourfirm.getState().layout.items.find((i) => i.id === 'side-table')?.x === 0.6, null, { timeout: 10000 }).catch(() => {});
+  const sideX = (await item('side-table')).x;
+  check(sideX === 0.6, `Autosave restores the design after a reload (side table x = ${sideX})`);
+  await page.evaluate(() => window.__tourfirm.getState().set({ quality: 'balanced' }));
+
   // Help overlay
   await page.keyboard.press('h');
   check(await page.locator('.modal').isVisible(), 'H opens the controls guide');
-  await shot('16-help');
+  await shot('23-help');
   await page.keyboard.press('Escape');
 
   // Phone-sized viewport
   await page.setViewportSize({ width: 390, height: 844 });
   await preset('overview');
-  await shot('17-phone-overview');
+  await shot('24-phone-overview');
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   check(!overflow, 'No horizontal page overflow at phone width');
 

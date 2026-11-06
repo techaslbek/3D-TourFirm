@@ -9,7 +9,11 @@ export const debug = {
   fps: 0,
   walk: { x: 0, y: 0, yaw: 0, pitch: 0 },
   errors: [] as string[],
+  /** Saves the autosave slot immediately (set by autosave.ts). */
+  flushAutosave: async (): Promise<void> => {},
   getState: () => useStore.getState(),
+  /** Screen position (CSS px) of a layout point (x, y, height). Set by the scene. */
+  project: (_x: number, _y: number, _h = 0): [number, number] => [0, 0],
 };
 
 declare global {

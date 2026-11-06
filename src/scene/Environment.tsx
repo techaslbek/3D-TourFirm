@@ -5,8 +5,8 @@ import * as THREE from 'three';
 import { WALL_THICKNESS } from '../core/geometry';
 import { useStore, type Quality } from '../state/store';
 import { useT } from '../ui/i18n';
-import { isCeilingRect } from '../core/types';
-import { PALETTE, PENDANT_HEIGHT, textTexture } from './palette';
+import { DEFAULT_LIGHTING, isCeilingRect } from '../core/types';
+import { kelvinToHex, PALETTE, PENDANT_HEIGHT, textTexture } from './palette';
 
 const SHADOW_SIZE: Record<Quality, number> = { low: 512, balanced: 1024, high: 2048 };
 const DPR: Record<Quality, [number, number]> = { low: [1, 1], balanced: [1, 1.5], high: [1, 2] };
@@ -46,8 +46,12 @@ export function Lighting() {
     return quality === 'low' ? [pts[0], pts[2], pts[3]] : pts;
   }, [W, D, quality]);
   const pendants = layout.ceiling.filter((c) => !isCeilingRect(c)) as { id: string; x: number; y: number }[];
-  const lamp = layout.items.find((i) => i.id.startsWith('floor-lamp'));
+  const lamp = layout.items.find((i) => i.id.startsWith('floor-lamp') && !i.hidden);
   const fittings = quality !== 'low';
+  const lighting = layout.lighting ?? DEFAULT_LIGHTING;
+  const warm = kelvinToHex(lighting.warmth);
+  const fittingColor = kelvinToHex(Math.max(2200, lighting.warmth - 300));
+  const k = lighting.brightness;
 
   return (
     <>
@@ -69,13 +73,13 @@ export function Lighting() {
         shadow-camera-far={40}
       />
       {fills.map(([x, y]) => (
-        <pointLight key={`f-${x}-${y}`} position={[x, H - 0.3, -y]} intensity={quality === 'low' ? 6 : 4.2} distance={10} decay={1.5} color="#ffe3c2" />
+        <pointLight key={`f-${x}-${y}`} position={[x, H - 0.3, -y]} intensity={(quality === 'low' ? 6 : 4.2) * k} distance={10} decay={1.5} color={warm} />
       ))}
       {fittings && pendants.map((p) => (
-        <pointLight key={p.id} position={[p.x, PENDANT_HEIGHT - 0.1, -p.y]} intensity={1.6} distance={4.5} decay={2} color="#ffd6a0" />
+        <pointLight key={p.id} position={[p.x, PENDANT_HEIGHT - 0.1, -p.y]} intensity={1.6 * k} distance={4.5} decay={2} color={fittingColor} />
       ))}
       {fittings && lamp && (
-        <pointLight position={[lamp.x, lamp.h - 0.2, -lamp.y]} intensity={1.4} distance={4} decay={2} color="#ffd29a" />
+        <pointLight position={[lamp.x, lamp.h - 0.2, -lamp.y]} intensity={1.4 * k} distance={4} decay={2} color={fittingColor} />
       )}
       <DreiEnvironment resolution={64} frames={1}>
         <Lightformer form="rect" intensity={1.1} color="#fff4e6" position={[0, 6, 0]} rotation-x={Math.PI / 2} scale={[12, 12, 1]} />
@@ -96,11 +100,16 @@ export function Effects() {
   const quality = useStore((s) => s.quality);
   const layout = useStore((s) => s.layout);
   const showFurniture = useStore((s) => s.showFurniture);
+  // Re-bake when anything that casts a contact shadow changes (positions, sizes, visibility).
+  const signature = useMemo(
+    () => layout.items.map((i) => `${i.id}:${i.x},${i.y},${i.w},${i.d},${i.h},${i.hidden ? 1 : 0}`).join('|'),
+    [layout.items],
+  );
   if (quality === 'low') return null;
   const { width: W, depth: D } = layout.room;
   return (
     <ContactShadows
-      key={`${quality}-${W}-${D}-${showFurniture}-${layout.items.length}`}
+      key={`${quality}-${W}-${D}-${showFurniture}-${signature}`}
       position={[W / 2, 0.014, -D / 2]}
       scale={[W, D]}
       resolution={quality === 'high' ? 2048 : 1024}

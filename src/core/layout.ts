@@ -87,7 +87,7 @@ export function walkColliders(layout: Layout, doorOpen: boolean): Rect[] {
     }
   }
   for (const p of layout.partitions) rects.push(...partitionSegments(p));
-  for (const i of layout.items) if (i.layer === 'floor' && i.h >= BLOCKING_HEIGHT) rects.push(itemRect(i));
+  for (const i of layout.items) if (i.layer === 'floor' && !i.hidden && i.h >= BLOCKING_HEIGHT) rects.push(itemRect(i));
   rects.push(doorLeafRect(layout.room.facade.door, doorOpen));
   return rects;
 }

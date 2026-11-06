@@ -144,7 +144,8 @@
       "y": 1.35,
       "w": 3.0,
       "d": 2.0,
-      "h": 0.01
+      "h": 0.01,
+      "catalogId": "rug-3x2"
     },
     {
       "id": "sofa",
@@ -156,7 +157,8 @@
       "w": 2.0,
       "d": 0.9,
       "h": 0.8,
-      "faces": "+y"
+      "faces": "+y",
+      "catalogId": "sofa-3"
     },
     {
       "id": "coffee-table",
@@ -167,7 +169,8 @@
       "y": 1.95,
       "w": 1.0,
       "d": 0.6,
-      "h": 0.42
+      "h": 0.42,
+      "catalogId": "coffee-table"
     },
     {
       "id": "armchair-l",
@@ -179,7 +182,8 @@
       "w": 0.8,
       "d": 0.8,
       "h": 0.8,
-      "faces": "+x"
+      "faces": "+x",
+      "catalogId": "armchair"
     },
     {
       "id": "armchair-r",
@@ -191,7 +195,8 @@
       "w": 0.8,
       "d": 0.8,
       "h": 0.8,
-      "faces": "-x"
+      "faces": "-x",
+      "catalogId": "armchair"
     },
     {
       "id": "side-table",
@@ -203,7 +208,8 @@
       "w": 0.45,
       "d": 0.45,
       "h": 0.55,
-      "shape": "round"
+      "shape": "round",
+      "catalogId": "side-table"
     },
     {
       "id": "floor-lamp",
@@ -215,7 +221,8 @@
       "w": 0.35,
       "d": 0.35,
       "h": 1.6,
-      "shape": "round"
+      "shape": "round",
+      "catalogId": "floor-lamp"
     },
     {
       "id": "lattice-screen",
@@ -223,10 +230,11 @@
       "cat": "decor",
       "layer": "floor",
       "x": 1.1,
-      "y": 2.75,
+      "y": 3.0,
       "w": 1.8,
       "d": 0.05,
-      "h": 2.0
+      "h": 2.0,
+      "catalogId": "lattice-screen"
     },
     {
       "id": "plant-lounge",
@@ -238,7 +246,8 @@
       "w": 0.5,
       "d": 0.5,
       "h": 1.6,
-      "shape": "round"
+      "shape": "round",
+      "catalogId": "plant-tall"
     },
     {
       "id": "coat-stand",
@@ -250,7 +259,8 @@
       "w": 0.5,
       "d": 0.5,
       "h": 1.8,
-      "shape": "round"
+      "shape": "round",
+      "catalogId": "coat-stand"
     },
     {
       "id": "umbrella-stand",
@@ -262,7 +272,8 @@
       "w": 0.28,
       "d": 0.28,
       "h": 0.6,
-      "shape": "round"
+      "shape": "round",
+      "catalogId": "umbrella-stand"
     },
     {
       "id": "window-bench",
@@ -274,7 +285,8 @@
       "w": 2.4,
       "d": 0.45,
       "h": 0.45,
-      "faces": "+y"
+      "faces": "+y",
+      "catalogId": "window-bench"
     },
     {
       "id": "display-unit",
@@ -286,7 +298,8 @@
       "w": 0.4,
       "d": 1.2,
       "h": 0.9,
-      "faces": "-x"
+      "faces": "-x",
+      "catalogId": "display-unit"
     },
     {
       "id": "plant-right",
@@ -298,7 +311,8 @@
       "w": 0.5,
       "d": 0.5,
       "h": 1.6,
-      "shape": "round"
+      "shape": "round",
+      "catalogId": "plant-tall"
     },
     {
       "id": "desk-1",
@@ -310,7 +324,8 @@
       "w": 1.4,
       "d": 0.7,
       "h": 0.75,
-      "faces": "-y"
+      "faces": "-y",
+      "catalogId": "desk-140"
     },
     {
       "id": "desk-2",
@@ -322,7 +337,8 @@
       "w": 1.4,
       "d": 0.7,
       "h": 0.75,
-      "faces": "-y"
+      "faces": "-y",
+      "catalogId": "desk-140"
     },
     {
       "id": "staff-chair-1",
@@ -334,7 +350,8 @@
       "w": 0.65,
       "d": 0.65,
       "h": 1.1,
-      "faces": "-y"
+      "faces": "-y",
+      "catalogId": "staff-chair"
     },
     {
       "id": "staff-chair-2",
@@ -346,7 +363,8 @@
       "w": 0.65,
       "d": 0.65,
       "h": 1.1,
-      "faces": "-y"
+      "faces": "-y",
+      "catalogId": "staff-chair"
     },
     {
       "id": "visitor-1a",
@@ -358,7 +376,8 @@
       "w": 0.55,
       "d": 0.55,
       "h": 0.82,
-      "faces": "+y"
+      "faces": "+y",
+      "catalogId": "visitor-chair"
     },
     {
       "id": "visitor-1b",
@@ -370,7 +389,8 @@
       "w": 0.55,
       "d": 0.55,
       "h": 0.82,
-      "faces": "+y"
+      "faces": "+y",
+      "catalogId": "visitor-chair"
     },
     {
       "id": "visitor-2a",
@@ -382,7 +402,8 @@
       "w": 0.55,
       "d": 0.55,
       "h": 0.82,
-      "faces": "+y"
+      "faces": "+y",
+      "catalogId": "visitor-chair"
     },
     {
       "id": "visitor-2b",
@@ -394,7 +415,8 @@
       "w": 0.55,
       "d": 0.55,
       "h": 0.82,
-      "faces": "+y"
+      "faces": "+y",
+      "catalogId": "visitor-chair"
     },
     {
       "id": "credenza-1",
@@ -406,7 +428,8 @@
       "w": 1.2,
       "d": 0.45,
       "h": 0.75,
-      "faces": "-y"
+      "faces": "-y",
+      "catalogId": "credenza-120"
     },
     {
       "id": "credenza-2",
@@ -418,7 +441,8 @@
       "w": 1.2,
       "d": 0.45,
       "h": 0.75,
-      "faces": "-y"
+      "faces": "-y",
+      "catalogId": "credenza-120"
     },
     {
       "id": "acoustic-screen",
@@ -429,7 +453,8 @@
       "y": 4.1,
       "w": 0.05,
       "d": 1.8,
-      "h": 1.4
+      "h": 1.4,
+      "catalogId": "acoustic-screen"
     },
     {
       "id": "tea-counter",
@@ -441,7 +466,8 @@
       "w": 1.4,
       "d": 0.6,
       "h": 0.9,
-      "faces": "-y"
+      "faces": "-y",
+      "catalogId": "tea-counter"
     },
     {
       "id": "water-cooler",
@@ -453,7 +479,8 @@
       "w": 0.35,
       "d": 0.35,
       "h": 1.1,
-      "faces": "-y"
+      "faces": "-y",
+      "catalogId": "water-cooler"
     },
     {
       "id": "tall-cab-1",
@@ -465,7 +492,8 @@
       "w": 0.8,
       "d": 0.4,
       "h": 2.0,
-      "faces": "-y"
+      "faces": "-y",
+      "catalogId": "tall-cabinet"
     },
     {
       "id": "shelving",
@@ -477,7 +505,8 @@
       "w": 0.8,
       "d": 0.35,
       "h": 2.0,
-      "faces": "-y"
+      "faces": "-y",
+      "catalogId": "shelving"
     },
     {
       "id": "cleaning-cab",
@@ -489,7 +518,8 @@
       "w": 0.4,
       "d": 0.6,
       "h": 2.0,
-      "faces": "+x"
+      "faces": "+x",
+      "catalogId": "cleaning-cupboard"
     },
     {
       "id": "printer",
@@ -501,7 +531,8 @@
       "w": 0.5,
       "d": 0.5,
       "h": 1.0,
-      "faces": "-y"
+      "faces": "-y",
+      "catalogId": "printer"
     },
     {
       "id": "safe",
@@ -513,7 +544,8 @@
       "w": 0.4,
       "d": 0.4,
       "h": 0.5,
-      "faces": "-y"
+      "faces": "-y",
+      "catalogId": "safe"
     },
     {
       "id": "bin-lounge",
@@ -525,7 +557,8 @@
       "w": 0.25,
       "d": 0.25,
       "h": 0.4,
-      "shape": "round"
+      "shape": "round",
+      "catalogId": "bin"
     },
     {
       "id": "bin-desk-1",
@@ -537,7 +570,8 @@
       "w": 0.25,
       "d": 0.25,
       "h": 0.4,
-      "shape": "round"
+      "shape": "round",
+      "catalogId": "bin"
     },
     {
       "id": "bin-desk-2",
@@ -549,7 +583,8 @@
       "w": 0.25,
       "d": 0.25,
       "h": 0.4,
-      "shape": "round"
+      "shape": "round",
+      "catalogId": "bin"
     },
     {
       "id": "bin-tea",
@@ -561,7 +596,8 @@
       "w": 0.25,
       "d": 0.25,
       "h": 0.4,
-      "shape": "round"
+      "shape": "round",
+      "catalogId": "bin"
     }
   ],
   "wallItems": [

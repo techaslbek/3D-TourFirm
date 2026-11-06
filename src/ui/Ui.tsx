@@ -1,9 +1,14 @@
 import { useEffect, useMemo } from 'react';
 import { itemsOutsideRoom, ROOM_LIMITS } from '../core/layout';
 import { cameraPresets, type CameraMode } from '../core/presets';
-import { useStore, type CeilingMode, type Quality, type WallMode } from '../state/store';
+import { findConflicts } from '../core/validate';
+import { useStore, type CeilingMode, type PanelTab, type Quality, type WallMode } from '../state/store';
+import { BudgetTab } from './Budget';
+import { DesignTab, Inspector } from './Editor';
 import { useT, type Lang, type TKey } from './i18n';
 import { isTypingTarget } from './keys';
+import { ChecksSection, ProjectTab } from './Project';
+import { Check, NumberField } from './controls';
 
 const MODES: { id: CameraMode; key: TKey; shortcut: string }[] = [
   { id: 'orbit', key: 'orbit', shortcut: '1' },
@@ -20,7 +25,7 @@ export function Ui() {
     <>
       <Toolbar />
       <SidePanel />
-      <InfoCard />
+      <Inspector />
       <WalkHud />
       <Toast />
       <FpsBadge />
@@ -33,13 +38,34 @@ function useShortcuts() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (isTypingTarget(e.target)) return;
-      if (e.ctrlKey || e.metaKey || e.altKey) return;
       const s = useStore.getState();
+      const mod = e.ctrlKey || e.metaKey;
+      if (mod && !e.altKey) {
+        const k = e.key.toLowerCase();
+        if (k === 'z' && !e.shiftKey) { s.undo(); e.preventDefault(); }
+        else if ((k === 'z' && e.shiftKey) || k === 'y') { s.redo(); e.preventDefault(); }
+        else if (k === 'd' && s.selected) { s.duplicateSelected(); e.preventDefault(); }
+        return;
+      }
+      if (e.altKey) return;
+      const editing = s.selected && s.cameraMode !== 'walk';
+      if (editing) {
+        if (e.key === 'Delete' || e.key === 'Backspace') { s.deleteSelected(); e.preventDefault(); return; }
+        if (e.key === '[') { s.rotateSelected(-1); return; }
+        if (e.key === ']') { s.rotateSelected(1); return; }
+        const nudge: Record<string, [number, number]> = { ArrowLeft: [-0.05, 0], ArrowRight: [0.05, 0], ArrowUp: [0, 0.05], ArrowDown: [0, -0.05] };
+        if (nudge[e.key]) {
+          const item = s.layout.items.find((i) => i.id === s.selected);
+          if (item) s.moveItem(item.id, Math.round((item.x + nudge[e.key][0]) * 1000) / 1000, Math.round((item.y + nudge[e.key][1]) * 1000) / 1000);
+          e.preventDefault();
+          return;
+        }
+      }
       const mode = MODES.find((m) => m.shortcut === e.key);
       if (mode) s.setCameraMode(mode.id);
       else if (e.key === 'r' || e.key === 'R') s.applyPreset(PRESET_FOR_MODE[s.cameraMode]);
       else if (e.key === 'h' || e.key === 'H' || e.key === '?') s.set({ helpOpen: !s.helpOpen });
-      else if (e.key === 'Escape') s.set({ helpOpen: false, inspected: null });
+      else if (e.key === 'Escape') s.set({ helpOpen: false, selected: null });
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -53,8 +79,11 @@ function Toolbar() {
   const lang = useStore((s) => s.lang);
   const quality = useStore((s) => s.quality);
   const req = useStore((s) => s.cameraRequest);
-  const { set, setCameraMode, applyPreset } = useStore.getState();
+  const canUndo = useStore((s) => s.past.length > 0);
+  const canRedo = useStore((s) => s.future.length > 0);
+  const { set, setCameraMode, applyPreset, undo, redo } = useStore.getState();
   const presets = useMemo(() => cameraPresets(layout), [layout]);
+  const conflicts = useMemo(() => findConflicts(layout).count, [layout]);
   return (
     <header className="toolbar" role="toolbar">
       <div className="brand">
@@ -63,24 +92,37 @@ function Toolbar() {
       </div>
       <div className="seg" role="group" aria-label="Camera mode">
         {MODES.map((m) => (
-          <button key={m.id} data-mode={m.id} className={mode === m.id ? 'on' : ''} aria-pressed={mode === m.id} onClick={(e) => { setCameraMode(m.id); e.currentTarget.blur(); }} title={`${t(m.key)} (${m.shortcut})`}>
+          <button key={m.id} data-mode={m.id} className={mode === m.id ? 'on' : ''} aria-pressed={mode === m.id}
+            onClick={(e) => { setCameraMode(m.id); e.currentTarget.blur(); }} title={`${t(m.key)} (${m.shortcut})`}>
             {t(m.key)}
           </button>
         ))}
       </div>
       <label className="field">
         <span>{t('views')}</span>
-        <select data-testid="preset" value={req?.preset.id ?? ''} onChange={(e) => { applyPreset(e.target.value); e.target.blur(); }}>
+        <select id="preset" data-testid="preset" value={req?.preset.id ?? ''} onChange={(e) => { applyPreset(e.target.value); e.target.blur(); }}>
           {presets.map((p) => (
             <option key={p.id} value={p.id}>{t(`preset.${p.id}` as TKey)}</option>
           ))}
         </select>
       </label>
       <button onClick={() => applyPreset(PRESET_FOR_MODE[mode])} title={`${t('resetCamera')} (R)`}>{t('resetCamera')}</button>
+      <div className="seg">
+        <button data-testid="undo" onClick={(e) => { undo(); e.currentTarget.blur(); }} disabled={!canUndo} title={`${t('undo')} (Ctrl+Z)`} aria-label={t('undo')}>↶</button>
+        <button data-testid="redo" onClick={(e) => { redo(); e.currentTarget.blur(); }} disabled={!canRedo} title={`${t('redo')} (Ctrl+Y)`} aria-label={t('redo')}>↷</button>
+      </div>
+      <button
+        data-testid="checks-badge"
+        className={conflicts ? 'warn-badge' : 'ok-badge'}
+        onClick={() => set({ panelOpen: true, panelTab: 'room' })}
+        title={t('checks')}
+      >
+        {conflicts ? `⚠ ${conflicts}` : '✓'} {t('checks')}
+      </button>
       <div className="spacer" />
       <label className="field">
         <span>{t('quality')}</span>
-        <select value={quality} onChange={(e) => set({ quality: e.target.value as Quality })}>
+        <select id="quality" value={quality} onChange={(e) => set({ quality: e.target.value as Quality })}>
           <option value="low">{t('low')}</option>
           <option value="balanced">{t('balanced')}</option>
           <option value="high">{t('high')}</option>
@@ -88,7 +130,7 @@ function Toolbar() {
       </label>
       <label className="field">
         <span>{t('language')}</span>
-        <select value={lang} onChange={(e) => set({ lang: e.target.value as Lang })} data-testid="lang">
+        <select id="lang" value={lang} onChange={(e) => set({ lang: e.target.value as Lang })} data-testid="lang">
           <option value="en">English</option>
           <option value="uz">Oʻzbekcha</option>
           <option value="ru">Русский</option>
@@ -99,44 +141,52 @@ function Toolbar() {
   );
 }
 
-function NumberField({ label, value, min, max, step, onChange, testId }: {
-  label: string; value: number; min: number; max: number; step: number; onChange: (v: number) => void; testId: string;
-}) {
+const TABS: { id: PanelTab; key: TKey }[] = [
+  { id: 'design', key: 'tabDesign' },
+  { id: 'room', key: 'tabRoom' },
+  { id: 'brand', key: 'tabBrand' },
+  { id: 'budget', key: 'tabBudget' },
+  { id: 'project', key: 'tabProject' },
+  { id: 'settings', key: 'tabSettings' },
+];
+
+function SidePanel() {
+  const t = useT();
+  const open = useStore((s) => s.panelOpen);
+  const tab = useStore((s) => s.panelTab);
+  const set = useStore((s) => s.set);
+  if (!open) {
+    return <button className="panel-toggle closed" onClick={() => set({ panelOpen: true })}>☰ {t('panel')}</button>;
+  }
   return (
-    <div className="num">
-      <label htmlFor={testId}>{label}</label>
-      <div className="num-row">
-        <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(+e.target.value)} aria-label={label} />
-        <input
-          id={testId}
-          data-testid={testId}
-          type="number"
-          min={min}
-          max={max}
-          step={step}
-          value={value}
-          onChange={(e) => {
-            const v = parseFloat(e.target.value);
-            if (Number.isFinite(v) && v >= min && v <= max) onChange(v);
-          }}
-        />
-        <span className="unit">m</span>
+    <aside className={`panel ${tab === 'budget' ? 'wide' : ''}`} aria-label={t('panel')}>
+      <div className="tabs" role="tablist">
+        {TABS.map((x) => (
+          <button key={x.id} role="tab" data-tab={x.id} aria-selected={tab === x.id} className={tab === x.id ? 'on' : ''} onClick={() => set({ panelTab: x.id })}>
+            {t(x.key)}
+          </button>
+        ))}
+        <button className="tab-close" onClick={() => set({ panelOpen: false })} aria-label={t('close')}>×</button>
       </div>
-    </div>
+      <div className="panel-body">
+        {tab === 'design' && <DesignTab />}
+        {tab === 'room' && <RoomTab />}
+        {tab === 'brand' && <BrandTab />}
+        {tab === 'budget' && <BudgetTab />}
+        {tab === 'project' && <ProjectTab />}
+        {tab === 'settings' && <SettingsTab />}
+      </div>
+    </aside>
   );
 }
 
-function SidePanel() {
+function RoomTab() {
   const t = useT();
   const s = useStore();
   const outside = useMemo(() => itemsOutsideRoom(s.layout), [s.layout]);
   const { width, depth, ceilingHeight } = s.layout.room;
-  if (!s.panelOpen) {
-    return <button className="panel-toggle closed" onClick={() => s.set({ panelOpen: true })}>☰ {t('panel')}</button>;
-  }
   return (
-    <aside className="panel" aria-label={t('panel')}>
-      <button className="panel-toggle" onClick={() => s.set({ panelOpen: false })} aria-label={t('close')}>×</button>
+    <>
       <section>
         <h3>{t('room')}</h3>
         <NumberField testId="room-width" label={t('width')} value={width} {...ROOM_LIMITS.width} onChange={(v) => s.setRoomSize({ width: v })} />
@@ -144,49 +194,21 @@ function SidePanel() {
         <NumberField testId="room-height" label={t('height')} value={ceilingHeight} {...ROOM_LIMITS.height} onChange={(v) => s.setRoomSize({ height: v })} />
         <p className="meta">{t('area')}: <strong>{(width * depth).toFixed(1)} m²</strong></p>
         <p className="note">{t('assumed')}</p>
-        {outside.length > 0 && (
-          <p className="warn" data-testid="outside-warning">⚠ {outside.length} {t('itemsOutside')}</p>
-        )}
+        {outside.length > 0 && <p className="warn" data-testid="outside-warning">⚠ {outside.length} {t('itemsOutside')}</p>}
         <button onClick={s.resetRoom}>{t('resetRoom')}</button>
       </section>
-      <section>
-        <h3>{t('brand')}</h3>
-        <label className="row" htmlFor="brand-name">
-          <span>{t('brandName')}</span>
-          <input id="brand-name" data-testid="brand-name" className="text" type="text" maxLength={40} value={s.brandName} onChange={(e) => s.set({ brandName: e.target.value })} />
-        </label>
-        <label className="row" htmlFor="brand-tagline">
-          <span>{t('brandTagline')}</span>
-          <input id="brand-tagline" className="text" type="text" maxLength={60} value={s.brandTagline} onChange={(e) => s.set({ brandTagline: e.target.value })} />
-        </label>
-        <div className="row">
-          <span>{t('destinationsLabel')}</span>
-          {s.destinations.map((d, k) => (
-            <input
-              key={k}
-              id={`destination-${k}`}
-              aria-label={`${t('destinationsLabel')} ${k + 1}`}
-              className="text"
-              type="text"
-              maxLength={24}
-              value={d}
-              onChange={(e) => s.set({ destinations: s.destinations.map((v, j) => (j === k ? e.target.value : v)) })}
-            />
-          ))}
-        </div>
-        <p className="note">{t('brandNote')}</p>
-      </section>
+      <ChecksSection />
       <section>
         <h3>{t('layers')}</h3>
         <label className="row">
           <span>{t('walls')}</span>
-          <select value={s.wallMode} onChange={(e) => s.set({ wallMode: e.target.value as WallMode })}>
+          <select id="wall-mode" value={s.wallMode} onChange={(e) => s.set({ wallMode: e.target.value as WallMode })}>
             {(['cutaway', 'solid', 'transparent', 'hidden'] as const).map((m) => <option key={m} value={m}>{t(m)}</option>)}
           </select>
         </label>
         <label className="row">
           <span>{t('ceiling')}</span>
-          <select value={s.ceilingMode} onChange={(e) => s.set({ ceilingMode: e.target.value as CeilingMode })}>
+          <select id="ceiling-mode" value={s.ceilingMode} onChange={(e) => s.set({ ceilingMode: e.target.value as CeilingMode })}>
             {(['auto', 'on', 'off'] as const).map((m) => <option key={m} value={m}>{t(m)}</option>)}
           </select>
         </label>
@@ -196,50 +218,59 @@ function SidePanel() {
         <Check label={t('grid')} checked={s.showGrid} onChange={(v) => s.set({ showGrid: v })} />
         <Check label={t('door')} checked={s.doorOpen} onChange={(v) => s.set({ doorOpen: v })} testId="door-open" />
       </section>
+    </>
+  );
+}
+
+function BrandTab() {
+  const t = useT();
+  const s = useStore();
+  return (
+    <section>
+      <h3>{t('brand')}</h3>
+      <label className="row" htmlFor="brand-name">
+        <span>{t('brandName')}</span>
+        <input id="brand-name" data-testid="brand-name" className="text" type="text" maxLength={40} value={s.brandName} onChange={(e) => s.set({ brandName: e.target.value })} />
+      </label>
+      <label className="row" htmlFor="brand-tagline">
+        <span>{t('brandTagline')}</span>
+        <input id="brand-tagline" className="text" type="text" maxLength={60} value={s.brandTagline} onChange={(e) => s.set({ brandTagline: e.target.value })} />
+      </label>
+      <div className="row">
+        <span>{t('destinationsLabel')}</span>
+        {s.destinations.map((d, k) => (
+          <input key={k} id={`destination-${k}`} aria-label={`${t('destinationsLabel')} ${k + 1}`} className="text" type="text" maxLength={24} value={d}
+            onChange={(e) => s.set({ destinations: s.destinations.map((v, j) => (j === k ? e.target.value : v)) })} />
+        ))}
+      </div>
+      <p className="note">{t('brandNote')}</p>
+    </section>
+  );
+}
+
+function SettingsTab() {
+  const t = useT();
+  const s = useStore();
+  return (
+    <>
       <section>
         <h3>{t('walking')}</h3>
         <label className="row">
           <span>{t('eyeHeight')} <em>{s.eyeHeight.toFixed(2)} m</em></span>
-          <input type="range" min={1.0} max={2.0} step={0.05} value={s.eyeHeight} onChange={(e) => s.set({ eyeHeight: +e.target.value })} />
+          <input id="eye-height" type="range" min={1.0} max={2.0} step={0.05} value={s.eyeHeight} onChange={(e) => s.set({ eyeHeight: +e.target.value })} />
         </label>
         <label className="row">
           <span>{t('speed')} <em>{s.walkSpeed.toFixed(1)} m/s</em></span>
-          <input type="range" min={0.5} max={4} step={0.1} value={s.walkSpeed} onChange={(e) => s.set({ walkSpeed: +e.target.value })} />
+          <input id="walk-speed" type="range" min={0.5} max={4} step={0.1} value={s.walkSpeed} onChange={(e) => s.set({ walkSpeed: +e.target.value })} />
         </label>
         <Check label={t('collision')} checked={s.collision} onChange={(v) => s.set({ collision: v })} />
       </section>
       <section>
+        <h3>{t('quality')}</h3>
         <Check label={t('autoQuality')} checked={s.autoQuality} onChange={(v) => s.set({ autoQuality: v })} />
         <Check label={t('showFps')} checked={s.showFps} onChange={(v) => s.set({ showFps: v })} />
       </section>
-    </aside>
-  );
-}
-
-function Check({ label, checked, onChange, testId }: { label: string; checked: boolean; onChange: (v: boolean) => void; testId?: string }) {
-  return (
-    <label className="check">
-      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} data-testid={testId} />
-      <span>{label}</span>
-    </label>
-  );
-}
-
-function InfoCard() {
-  const t = useT();
-  const id = useStore((s) => s.inspected);
-  const layout = useStore((s) => s.layout);
-  const item = layout.items.find((i) => i.id === id);
-  if (!item) return null;
-  const cm = (m: number) => Math.round(m * 100);
-  return (
-    <div className="info-card" role="dialog" aria-label={item.label}>
-      <button className="x" onClick={() => useStore.getState().set({ inspected: null })} aria-label={t('close')}>×</button>
-      <h4>{item.label}</h4>
-      <p>{t('size')}: {cm(item.w)} × {cm(item.d)} × {cm(item.h)} cm</p>
-      <p>{t('category')}: {item.cat}</p>
-      <p className="note">{t('editingLater')}</p>
-    </div>
+    </>
   );
 }
 
@@ -259,14 +290,16 @@ function WalkHud() {
 
 function Toast() {
   const t = useT();
-  const notice = useStore((s) => s.qualityNotice);
+  const quality = useStore((s) => s.qualityNotice);
+  const notice = useStore((s) => s.notice);
   useEffect(() => {
-    if (!notice) return;
-    const id = setTimeout(() => useStore.getState().set({ qualityNotice: null }), 4000);
+    if (!quality && !notice) return;
+    const id = setTimeout(() => useStore.getState().set({ qualityNotice: null, notice: null }), 4000);
     return () => clearTimeout(id);
-  }, [notice]);
-  if (!notice) return null;
-  return <div className="toast" role="status">{t(notice as TKey)}</div>;
+  }, [quality, notice]);
+  const text = notice ?? (quality ? t(quality as TKey) : null);
+  if (!text) return null;
+  return <div className="toast" role="status" data-testid="toast">{text}</div>;
 }
 
 function FpsBadge() {
@@ -289,6 +322,7 @@ function HelpOverlay() {
           <li>{t('helpOrbit')}</li>
           <li>{t('helpWalk')}</li>
           <li>{t('helpPlan')}</li>
+          <li>{t('helpEdit')}</li>
           <li>{t('helpKeys')}</li>
         </ul>
         <p className="note">{t('helpNote')}</p>
@@ -297,3 +331,4 @@ function HelpOverlay() {
     </div>
   );
 }
+

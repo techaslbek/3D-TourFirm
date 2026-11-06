@@ -49,7 +49,7 @@ function PlanRig() {
   const size = useThree((s) => s.size);
   const { width: W, depth: D } = layout.room;
   // Fit the room into the part of the screen not covered by the side panel and toolbar.
-  const padLeft = panelOpen && size.width > 760 ? 290 : 0;
+  const padLeft = panelOpen && size.width > 760 ? 360 : 0;
   const padTop = 80;
   const zoom = Math.max(10, Math.min((size.width - padLeft) / (W + 3), (size.height - padTop) / (D + 4.5)));
   const cx = W / 2 - padLeft / 2 / zoom;

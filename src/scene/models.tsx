@@ -74,10 +74,10 @@ function Doors({ W, H, y0, z, n, handleM }: { W: number; H: number; y0: number; 
   );
 }
 
-export interface ModelProps { W: number; D: number; H: number; id: string }
+export interface ModelProps { W: number; D: number; H: number; id: string; /** Colour-override material for the main finish. */ primary?: Mat }
 
-function Sofa({ W, D, H }: ModelProps) {
-  const f = M.fabricSand();
+function Sofa({ W, D, H , primary }: ModelProps) {
+  const f = primary ?? M.fabricSand();
   const arm = 0.17, back = 0.2, legH = 0.1;
   const seatW = W - 2 * arm;
   const n = 3, cw = seatW / n;
@@ -102,8 +102,8 @@ function Sofa({ W, D, H }: ModelProps) {
   );
 }
 
-function Armchair({ W, D, H }: ModelProps) {
-  const f = M.fabricTerracotta();
+function Armchair({ W, D, H , primary }: ModelProps) {
+  const f = primary ?? M.fabricTerracotta();
   const legH = 0.12, arm = 0.12, back = 0.16;
   return (
     <group>
@@ -119,10 +119,10 @@ function Armchair({ W, D, H }: ModelProps) {
   );
 }
 
-function CoffeeTable({ W, D, H }: ModelProps) {
+function CoffeeTable({ W, D, H , primary }: ModelProps) {
   return (
     <group>
-      <RBox s={[W, 0.04, D]} p={[0, H - 0.02, 0]} m={M.oak()} radius={0.015} />
+      <RBox s={[W, 0.04, D]} p={[0, H - 0.02, 0]} m={primary ?? M.oak()} radius={0.015} />
       <Box s={[W - 0.12, 0.02, D - 0.12]} p={[0, 0.12, 0]} m={M.oak()} />
       <Legs W={W} D={D} h={H - 0.04} inset={0.05} r={0.022} m={M.walnut()} />
       {/* Rishtan-style bowl and two books */}
@@ -133,11 +133,11 @@ function CoffeeTable({ W, D, H }: ModelProps) {
   );
 }
 
-function SideTable({ W, H }: ModelProps) {
+function SideTable({ W, H , primary }: ModelProps) {
   const r = W / 2;
   return (
     <group>
-      <Cyl r={r} h={0.03} p={[0, H - 0.015, 0]} m={M.oak()} seg={32} />
+      <Cyl r={r} h={0.03} p={[0, H - 0.015, 0]} m={primary ?? M.oak()} seg={32} />
       <Cyl r={0.025} h={H - 0.04} p={[0, (H - 0.04) / 2 + 0.01, 0]} m={M.metalBlack()} />
       <Cyl r={r * 0.6} h={0.02} p={[0, 0.01, 0]} m={M.metalBlack()} seg={28} />
       <Cyl r={0.045} h={0.012} p={[0.06, H + 0.006, 0.04]} m={M.plasticWhite()} />
@@ -145,12 +145,12 @@ function SideTable({ W, H }: ModelProps) {
   );
 }
 
-function FloorLamp({ W, H }: ModelProps) {
+function FloorLamp({ W, H , primary }: ModelProps) {
   return (
     <group>
       <Cyl r={W * 0.4} rb={W * 0.45} h={0.03} p={[0, 0.015, 0]} m={M.metalBlack()} seg={24} />
       <Cyl r={0.012} h={H - 0.2} p={[0, (H - 0.2) / 2, 0]} m={M.metalBlack()} seg={8} />
-      <Cyl r={W * 0.3} rb={W * 0.48} h={0.32} p={[0, H - 0.16, 0]} m={M.lampShade()} seg={28} open />
+      <Cyl r={W * 0.3} rb={W * 0.48} h={0.32} p={[0, H - 0.16, 0]} m={primary ?? M.lampShade()} seg={28} open />
       <mesh position={[0, H - 0.2, 0]} material={M.bulb()}>
         <sphereGeometry args={[0.04, 12, 8]} />
       </mesh>
@@ -158,7 +158,7 @@ function FloorLamp({ W, H }: ModelProps) {
   );
 }
 
-function LatticeScreen({ W, D, H }: ModelProps) {
+function LatticeScreen({ W, D, H , primary }: ModelProps) {
   const post = 0.05;
   const panelH = H - 0.22;
   const segs = 2;
@@ -171,7 +171,7 @@ function LatticeScreen({ W, D, H }: ModelProps) {
       <Box s={[W, 0.05, Math.max(D, 0.05)]} p={[0, H - 0.025, 0]} m={M.walnut()} />
       <Box s={[W, 0.06, Math.max(D, 0.05)]} p={[0, 0.14, 0]} m={M.walnut()} />
       {Array.from({ length: segs }, (_, k) => (
-        <mesh key={`l${k}`} position={[-W / 2 + post + sw / 2 + k * (sw + post), 0.17 + panelH / 2, 0]} material={M.lattice()} castShadow receiveShadow>
+        <mesh key={`l${k}`} position={[-W / 2 + post + sw / 2 + k * (sw + post), 0.17 + panelH / 2, 0]} material={primary ?? M.lattice()} castShadow receiveShadow>
           <planeGeometry args={[sw, panelH]} />
         </mesh>
       ))}
@@ -217,12 +217,12 @@ function Foliage({ id, W, H, y0 }: { id: string; W: number; H: number; y0: numbe
   );
 }
 
-function Plant({ W, H, id }: ModelProps) {
+function Plant({ W, H, id, primary }: ModelProps) {
   const potH = Math.min(0.38, H * 0.25);
   const r = W * 0.36;
   return (
     <group>
-      <Cyl r={r} rb={r * 0.78} h={potH} p={[0, potH / 2, 0]} m={M.terracottaPot()} seg={24} />
+      <Cyl r={r} rb={r * 0.78} h={potH} p={[0, potH / 2, 0]} m={primary ?? M.terracottaPot()} seg={24} />
       <Cyl r={r * 0.92} h={0.01} p={[0, potH - 0.02, 0]} m={M.soil()} seg={24} />
       <Cyl r={0.018} rb={0.026} h={H * 0.55} p={[0, potH + H * 0.27, 0]} m={M.bark()} seg={6} />
       <Foliage id={id} W={W} H={H} y0={potH + 0.1} />
@@ -239,8 +239,8 @@ function SmallPlant({ p, id, s = 1 }: { p: V3; id: string; s?: number }) {
   );
 }
 
-function CoatStand({ W, H }: ModelProps) {
-  const wood = M.walnut();
+function CoatStand({ W, H , primary }: ModelProps) {
+  const wood = primary ?? M.walnut();
   return (
     <group>
       <Cyl r={W * 0.38} rb={W * 0.42} h={0.03} p={[0, 0.015, 0]} m={wood} seg={24} />
@@ -255,10 +255,10 @@ function CoatStand({ W, H }: ModelProps) {
   );
 }
 
-function UmbrellaStand({ W, H }: ModelProps) {
+function UmbrellaStand({ W, H , primary }: ModelProps) {
   return (
     <group>
-      <Cyl r={W / 2} h={H} p={[0, H / 2, 0]} m={M.metalBlack()} seg={20} open />
+      <Cyl r={W / 2} h={H} p={[0, H / 2, 0]} m={primary ?? M.metalBlack()} seg={20} open />
       <Cyl r={W / 2} h={0.01} p={[0, 0.005, 0]} m={M.metalBlack()} seg={20} />
       <Cyl r={0.025} h={0.85} p={[0.04, 0.45, 0.02]} rot={[0.12, 0, -0.1]} m={M.fabricCobalt()} seg={8} />
       <Cyl r={0.022} h={0.8} p={[-0.04, 0.42, -0.02]} rot={[-0.1, 0, 0.12]} m={M.fabricSaffron()} seg={8} />
@@ -266,13 +266,13 @@ function UmbrellaStand({ W, H }: ModelProps) {
   );
 }
 
-function WindowBench({ W, D, H, id }: ModelProps) {
+function WindowBench({ W, D, H, id , primary }: ModelProps) {
   const cushionW = W - 0.7;
   return (
     <group>
       <Box s={[W, H - 0.05, D]} p={[0, (H - 0.05) / 2 + 0.05, 0]} m={M.oak()} />
       <Box s={[W - 0.04, 0.05, D - 0.06]} p={[0, 0.025, 0.02]} m={M.plasticDark()} />
-      <RBox s={[cushionW, 0.08, D - 0.04]} p={[0, H + 0.04, 0]} m={M.fabricSaffron()} radius={0.035} />
+      <RBox s={[cushionW, 0.08, D - 0.04]} p={[0, H + 0.04, 0]} m={primary ?? M.fabricSaffron()} radius={0.035} />
       <RBox s={[0.4, 0.36, 0.11]} p={[-cushionW / 2 + 0.3, H + 0.24, D / 2 - 0.08]} m={M.ikatA()} radius={0.05} r={[0.2, 0.2, 0]} />
       <SmallPlant p={[-W / 2 + 0.16, H, 0]} id={`${id}-a`} />
       <SmallPlant p={[W / 2 - 0.16, H, 0]} id={`${id}-b`} s={1.15} />
@@ -280,10 +280,10 @@ function WindowBench({ W, D, H, id }: ModelProps) {
   );
 }
 
-function DisplayUnit({ W, D, H, id }: ModelProps) {
+function DisplayUnit({ W, D, H, id , primary }: ModelProps) {
   return (
     <group>
-      <Box s={[W, H - 0.1, D]} p={[0, 0.1 + (H - 0.1) / 2 - 0.0, 0]} m={M.ivoryLacquer()} />
+      <Box s={[W, H - 0.1, D]} p={[0, 0.1 + (H - 0.1) / 2 - 0.0, 0]} m={primary ?? M.ivoryLacquer()} />
       <Box s={[W - 0.04, 0.1, D - 0.06]} p={[0, 0.05, 0.02]} m={M.plasticDark()} />
       <Box s={[W + 0.01, 0.03, D + 0.01]} p={[0, H - 0.015, 0]} m={M.oak()} />
       <Doors W={W} H={H - 0.14} y0={0.1} z={-D / 2} n={W > 0.9 ? 3 : 2} handleM={M.walnut()} />
@@ -293,9 +293,9 @@ function DisplayUnit({ W, D, H, id }: ModelProps) {
   );
 }
 
-function Desk({ W, D, H }: ModelProps) {
+function Desk({ W, D, H , primary }: ModelProps) {
   const top = 0.03;
-  const panel = M.sandLacquer();
+  const panel = primary ?? M.sandLacquer();
   return (
     <group>
       <RBox s={[W, top, D]} p={[0, H - top / 2, 0]} m={M.oak()} radius={0.012} />
@@ -322,8 +322,8 @@ function Desk({ W, D, H }: ModelProps) {
   );
 }
 
-function StaffChair({ W, D }: ModelProps) {
-  const fab = M.fabricCharcoal();
+function StaffChair({ W, D , primary }: ModelProps) {
+  const fab = primary ?? M.fabricCharcoal();
   return (
     <group>
       {[0, 1, 2, 3, 4].map((k) => {
@@ -351,8 +351,8 @@ function StaffChair({ W, D }: ModelProps) {
   );
 }
 
-function VisitorChair({ W, D, H }: ModelProps) {
-  const fab = M.fabricSaffron();
+function VisitorChair({ W, D, H , primary }: ModelProps) {
+  const fab = primary ?? M.fabricSaffron();
   return (
     <group>
       <Legs W={W} D={D} h={0.42} inset={0.07} r={0.016} m={M.oak()} splay={0.06} />
@@ -368,12 +368,12 @@ function VisitorChair({ W, D, H }: ModelProps) {
   );
 }
 
-function Credenza({ W, D, H, id }: ModelProps) {
+function Credenza({ W, D, H, id , primary }: ModelProps) {
   const plinth = 0.06;
   return (
     <group>
       <Box s={[W - 0.04, plinth, D - 0.04]} p={[0, plinth / 2, 0.01]} m={M.plasticDark()} />
-      <Box s={[W, H - plinth - 0.025, D]} p={[0, plinth + (H - plinth - 0.025) / 2, 0]} m={M.sandLacquer()} />
+      <Box s={[W, H - plinth - 0.025, D]} p={[0, plinth + (H - plinth - 0.025) / 2, 0]} m={primary ?? M.sandLacquer()} />
       <Box s={[W + 0.01, 0.025, D + 0.01]} p={[0, H - 0.0125, 0]} m={M.oak()} />
       <Doors W={W} H={H - plinth - 0.025} y0={plinth} z={-D / 2} n={2} handleM={M.metalBlack()} />
       <Box s={[0.08, 0.3, 0.24]} p={[W * 0.3, H + 0.15, 0]} m={M.fabricCobalt()} />
@@ -383,14 +383,14 @@ function Credenza({ W, D, H, id }: ModelProps) {
   );
 }
 
-function AcousticScreen({ W, D, H }: ModelProps) {
+function AcousticScreen({ W, D, H , primary }: ModelProps) {
   const n = 2;
   const pd = D / n;
   return (
     <group>
       {Array.from({ length: n }, (_, k) => (
         <group key={k}>
-          <RBox s={[Math.max(W, 0.04), H - 0.08, pd - 0.02]} p={[0, 0.08 + (H - 0.08) / 2, -D / 2 + pd * (k + 0.5)]} m={M.felt()} radius={0.02} />
+          <RBox s={[Math.max(W, 0.04), H - 0.08, pd - 0.02]} p={[0, 0.08 + (H - 0.08) / 2, -D / 2 + pd * (k + 0.5)]} m={primary ?? M.felt()} radius={0.02} />
           {[-1, 1].map((s) => (
             <Box key={s} s={[0.3, 0.025, 0.05]} p={[0, 0.0125, -D / 2 + pd * (k + 0.5) + s * (pd / 2 - 0.1)]} m={M.metalBlack()} />
           ))}
@@ -400,12 +400,12 @@ function AcousticScreen({ W, D, H }: ModelProps) {
   );
 }
 
-function TeaCounter({ W, D, H }: ModelProps) {
+function TeaCounter({ W, D, H , primary }: ModelProps) {
   const plinth = 0.08;
   return (
     <group>
       <Box s={[W - 0.04, plinth, D - 0.05]} p={[0, plinth / 2, 0.02]} m={M.plasticDark()} />
-      <Box s={[W, H - plinth - 0.03, D]} p={[0, plinth + (H - plinth - 0.03) / 2, 0]} m={M.sandLacquer()} />
+      <Box s={[W, H - plinth - 0.03, D]} p={[0, plinth + (H - plinth - 0.03) / 2, 0]} m={primary ?? M.sandLacquer()} />
       <Doors W={W} H={H - plinth - 0.03} y0={plinth} z={-D / 2} n={3} handleM={M.walnut()} />
       <Box s={[W + 0.02, 0.03, D + 0.02]} p={[0, H - 0.015, 0]} m={M.oak()} />
       {/* Kettle */}
@@ -432,11 +432,11 @@ function TeaCounter({ W, D, H }: ModelProps) {
   );
 }
 
-function WaterCooler({ W, D, H }: ModelProps) {
+function WaterCooler({ W, D, H , primary }: ModelProps) {
   const body = H - 0.46;
   return (
     <group>
-      <Box s={[W, body, D]} p={[0, body / 2, 0]} m={M.plasticWhite()} />
+      <Box s={[W, body, D]} p={[0, body / 2, 0]} m={primary ?? M.plasticWhite()} />
       <Box s={[W * 0.7, 0.2, 0.01]} p={[0, body - 0.25, -D / 2 - 0.004]} m={M.plasticGrey()} />
       <Box s={[0.03, 0.05, 0.04]} p={[-0.05, body - 0.28, -D / 2 - 0.02]} m={M.ceramicCobalt()} />
       <Box s={[0.03, 0.05, 0.04]} p={[0.05, body - 0.28, -D / 2 - 0.02]} m={M.fabricTerracotta()} />
@@ -446,29 +446,29 @@ function WaterCooler({ W, D, H }: ModelProps) {
   );
 }
 
-function TallCabinet({ W, D, H }: ModelProps) {
+function TallCabinet({ W, D, H , primary }: ModelProps) {
   return (
     <group>
-      <Box s={[W, H - 0.06, D]} p={[0, 0.06 + (H - 0.06) / 2, 0]} m={M.ivoryLacquer()} />
+      <Box s={[W, H - 0.06, D]} p={[0, 0.06 + (H - 0.06) / 2, 0]} m={primary ?? M.ivoryLacquer()} />
       <Box s={[W - 0.04, 0.06, D - 0.04]} p={[0, 0.03, 0.01]} m={M.plasticDark()} />
       <Doors W={W} H={H - 0.08} y0={0.06} z={-D / 2} n={2} handleM={M.metalBlack()} />
     </group>
   );
 }
 
-function Shelving({ W, D, H, id }: ModelProps) {
+function Shelving({ W, D, H, id , primary }: ModelProps) {
   const shelves = 5;
   const r = seeded(id);
   const colors = [M.fabricCobalt(), M.fabricTerracotta(), M.fabricSaffron(), M.plasticWhite(), M.fabricSand()];
   return (
     <group>
-      {[-1, 1].map((sx) => <Box key={sx} s={[0.025, H, D]} p={[sx * (W / 2 - 0.0125), H / 2, 0]} m={M.ivoryLacquer()} />)}
-      <Box s={[W, H, 0.01]} p={[0, H / 2, D / 2 - 0.005]} m={M.ivoryLacquer()} />
+      {[-1, 1].map((sx) => <Box key={sx} s={[0.025, H, D]} p={[sx * (W / 2 - 0.0125), H / 2, 0]} m={primary ?? M.ivoryLacquer()} />)}
+      <Box s={[W, H, 0.01]} p={[0, H / 2, D / 2 - 0.005]} m={primary ?? M.ivoryLacquer()} />
       {Array.from({ length: shelves }, (_, k) => {
         const y = 0.05 + (k * (H - 0.08)) / (shelves - 1);
         return (
           <group key={k}>
-            <Box s={[W - 0.05, 0.022, D - 0.01]} p={[0, y, 0]} m={M.ivoryLacquer()} />
+            <Box s={[W - 0.05, 0.022, D - 0.01]} p={[0, y, 0]} m={primary ?? M.ivoryLacquer()} />
             {k < shelves - 1 && Array.from({ length: 6 }, (_, j) => {
               const bw = 0.07 + r() * 0.03, bh = 0.22 + r() * 0.1;
               return <Box key={j} s={[bw, bh, D * 0.75]} p={[-W / 2 + 0.07 + j * 0.11, y + 0.011 + bh / 2, 0.02]} m={colors[Math.floor(r() * colors.length)]} />;
@@ -480,10 +480,10 @@ function Shelving({ W, D, H, id }: ModelProps) {
   );
 }
 
-function CleaningCupboard({ W, D, H }: ModelProps) {
+function CleaningCupboard({ W, D, H , primary }: ModelProps) {
   return (
     <group>
-      <Box s={[W, H - 0.05, D]} p={[0, 0.05 + (H - 0.05) / 2, 0]} m={M.sandLacquer()} />
+      <Box s={[W, H - 0.05, D]} p={[0, 0.05 + (H - 0.05) / 2, 0]} m={primary ?? M.sandLacquer()} />
       <Box s={[W - 0.03, 0.05, D - 0.03]} p={[0, 0.025, 0.01]} m={M.plasticDark()} />
       <Doors W={W} H={H - 0.07} y0={0.05} z={-D / 2} n={1} handleM={M.metalBlack()} />
       {/* Ventilation slots */}
@@ -492,11 +492,11 @@ function CleaningCupboard({ W, D, H }: ModelProps) {
   );
 }
 
-function Printer({ W, D, H }: ModelProps) {
+function Printer({ W, D, H , primary }: ModelProps) {
   const standH = H - 0.36;
   return (
     <group>
-      <Box s={[W, standH, D]} p={[0, standH / 2, 0]} m={M.plasticDark()} />
+      <Box s={[W, standH, D]} p={[0, standH / 2, 0]} m={primary ?? M.plasticDark()} />
       <RBox s={[W - 0.02, 0.3, D - 0.06]} p={[0, standH + 0.15, 0.02]} m={M.plasticWhite()} radius={0.02} />
       <Box s={[W - 0.04, 0.05, D - 0.1]} p={[0, standH + 0.325, 0.03]} m={M.plasticGrey()} />
       <Box s={[0.08, 0.01, 0.06]} p={[W * 0.3, standH + 0.355, -D / 2 + 0.08]} m={M.screen()} />
@@ -505,10 +505,10 @@ function Printer({ W, D, H }: ModelProps) {
   );
 }
 
-function Safe({ W, D, H }: ModelProps) {
+function Safe({ W, D, H , primary }: ModelProps) {
   return (
     <group>
-      <Box s={[W, H, D]} p={[0, H / 2, 0]} m={M.metalBlack()} />
+      <Box s={[W, H, D]} p={[0, H / 2, 0]} m={primary ?? M.metalBlack()} />
       <Box s={[W - 0.06, H - 0.06, 0.01]} p={[0, H / 2, -D / 2 - 0.004]} m={M.plasticDark()} />
       <Cyl r={0.04} h={0.02} p={[W * 0.15, H / 2, -D / 2 - 0.015]} rot={[Math.PI / 2, 0, 0]} m={M.chrome()} seg={18} />
       <Box s={[0.05, 0.03, 0.01]} p={[-W * 0.2, H * 0.7, -D / 2 - 0.01]} m={M.screen()} />
@@ -516,25 +516,25 @@ function Safe({ W, D, H }: ModelProps) {
   );
 }
 
-function Bin({ W, H }: ModelProps) {
+function Bin({ W, H , primary }: ModelProps) {
   return (
     <group>
-      <Cyl r={W / 2} rb={W / 2.3} h={H} p={[0, H / 2, 0]} m={M.metalBlack()} seg={18} open />
+      <Cyl r={W / 2} rb={W / 2.3} h={H} p={[0, H / 2, 0]} m={primary ?? M.metalBlack()} seg={18} open />
       <Cyl r={W / 2.3} h={0.01} p={[0, 0.006, 0]} m={M.metalBlack()} seg={18} />
     </group>
   );
 }
 
-function Rug({ W, D }: ModelProps) {
+function Rug({ W, D , primary }: ModelProps) {
   return (
-    <mesh position={[0, 0.006, 0]} material={M.carpet()} receiveShadow>
+    <mesh position={[0, 0.006, 0]} material={primary ?? M.carpet()} receiveShadow>
       <boxGeometry args={[W, 0.012, D]} />
     </mesh>
   );
 }
 
-function Generic({ W, D, H }: ModelProps) {
-  return <Box s={[W, H, D]} p={[0, H / 2, 0]} m={M.sandLacquer()} />;
+function Generic({ W, D, H , primary }: ModelProps) {
+  return <Box s={[W, H, D]} p={[0, H / 2, 0]} m={primary ?? M.sandLacquer()} />;
 }
 
 export const MODELS: Record<ModelKind, (p: ModelProps) => ReactElement> = {
@@ -564,4 +564,34 @@ export const MODELS: Record<ModelKind, (p: ModelProps) => ReactElement> = {
   safe: Safe,
   bin: Bin,
   generic: Generic,
+};
+
+/** The main-finish material of each model: the base that a colour override tints. */
+export const PRIMARY_BASE: Record<ModelKind, () => Mat> = {
+  rug: M.carpet,
+  sofa: M.fabricSand,
+  armchair: M.fabricTerracotta,
+  'coffee-table': M.oak,
+  'side-table': M.oak,
+  'floor-lamp': M.lampShade,
+  'lattice-screen': M.lattice,
+  plant: M.terracottaPot,
+  'coat-stand': M.walnut,
+  'umbrella-stand': M.metalBlack,
+  'window-bench': M.fabricSaffron,
+  'display-unit': M.ivoryLacquer,
+  desk: M.sandLacquer,
+  'staff-chair': M.fabricCharcoal,
+  'visitor-chair': M.fabricSaffron,
+  credenza: M.sandLacquer,
+  'acoustic-screen': M.felt,
+  'tea-counter': M.sandLacquer,
+  'water-cooler': M.plasticWhite,
+  'tall-cabinet': M.ivoryLacquer,
+  shelving: M.ivoryLacquer,
+  'cleaning-cupboard': M.sandLacquer,
+  printer: M.plasticDark,
+  safe: M.metalBlack,
+  bin: M.metalBlack,
+  generic: M.sandLacquer,
 };

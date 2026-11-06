@@ -176,3 +176,95 @@ describe('furniture models', () => {
     expect(-Math.sin(rotY)).toBeCloseTo(1);
   });
 });
+
+describe('editor operations', () => {
+  it('rotates in 90° steps, swapping the footprint, and returns after four turns', async () => {
+    const { rotateItem } = await import('./edit');
+    const sofa = DEFAULT_LAYOUT.items.find((i) => i.id === 'sofa')!;
+    const once = rotateItem(sofa, 1);
+    expect(once.faces).toBe('+x');
+    expect([once.w, once.d]).toEqual([sofa.d, sofa.w]);
+    const four = [1, 1, 1].reduce((it) => rotateItem(it, 1), once);
+    expect(four.faces).toBe(sofa.faces);
+    expect([four.w, four.d]).toEqual([sofa.w, sofa.d]);
+  });
+
+  it('snaps edges to the grid and to nearby walls, and keeps items inside the room', async () => {
+    const { snapPosition } = await import('./edit');
+    const desk = DEFAULT_LAYOUT.items.find((i) => i.id === 'desk-2')!;
+    // 6 cm from the right wall: wall snap pulls it flush
+    const [x] = snapPosition(DEFAULT_LAYOUT, desk, 10 - desk.w / 2 - 0.06, 4.05, 0.05);
+    expect(x + desk.w / 2).toBeCloseTo(10, 3);
+    // Far outside: clamped inside
+    const [cx, cy] = snapPosition(DEFAULT_LAYOUT, desk, 50, -5, 0.05);
+    expect(cx + desk.w / 2).toBeLessThanOrEqual(10.0001);
+    expect(cy - desk.d / 2).toBeGreaterThanOrEqual(-0.0001);
+  });
+
+  it('adds catalogue items at a free spot and duplicates without overlap', async () => {
+    const { addFromCatalog, duplicateItem } = await import('./edit');
+    const { catalogById } = await import('./catalog');
+    const { findConflicts } = await import('./validate');
+    const added = addFromCatalog(DEFAULT_LAYOUT, catalogById('armchair')!);
+    expect(added.layout.items).toHaveLength(DEFAULT_LAYOUT.items.length + 1);
+    expect(findConflicts(added.layout).count).toBe(0);
+    const dup = duplicateItem(added.layout, 'desk-1')!;
+    expect(dup.id).not.toBe('desk-1');
+    expect(findConflicts(dup.layout).count).toBe(0);
+  });
+
+  it('swaps a desk for a wider model keeping its centre', async () => {
+    const { swapCatalog } = await import('./edit');
+    const { catalogById } = await import('./catalog');
+    const L = swapCatalog(DEFAULT_LAYOUT, 'desk-1', catalogById('desk-160')!);
+    const d = L.items.find((i) => i.id === 'desk-1')!;
+    expect([d.x, d.y, d.w, d.d]).toEqual([6.3, 4.05, 1.6, 0.8]);
+  });
+});
+
+describe('live checks', () => {
+  it('finds no conflicts in the approved layout', async () => {
+    const { findConflicts } = await import('./validate');
+    expect(findConflicts(DEFAULT_LAYOUT).count).toBe(0);
+  });
+
+  it('flags overlaps, blocked door swing and entrance circle', async () => {
+    const { findConflicts } = await import('./validate');
+    const { updateItem } = await import('./edit');
+    const L = updateItem(DEFAULT_LAYOUT, 'armchair-r', { x: 5.0, y: 0.6 });
+    const c = findConflicts(L);
+    expect(c.doorSwing).toContain('armchair-r');
+    expect(c.entrance).toContain('armchair-r');
+    const L2 = updateItem(DEFAULT_LAYOUT, 'visitor-1a', { x: 6.3, y: 4.05 });
+    expect(findConflicts(L2).overlaps).toContainEqual(['desk-1', 'visitor-1a']);
+  });
+
+  it('can reach every seat, desk and cabinet from the entrance in the approved layout', async () => {
+    const { checkAccess } = await import('./validate');
+    const res = checkAccess(DEFAULT_LAYOUT);
+    expect(res.length).toBeGreaterThan(15);
+    expect(res.filter((r) => !r.tight).map((r) => r.id)).toEqual([]);
+  });
+});
+
+describe('budget and project files', () => {
+  it('counts furniture from the layout and totals with contingency', async () => {
+    const { computeBudget, DEFAULT_BUDGET } = await import('./budget');
+    const b = computeBudget(DEFAULT_LAYOUT, DEFAULT_BUDGET);
+    const visitor = b.lines.find((l) => l.catalogId === 'visitor-chair')!;
+    expect(visitor.qty).toBe(4);
+    expect(b.totalUsd).toBeCloseTo(b.subtotalUsd * 1.1, 6);
+    expect(b.verifiedShare).toBe(0);
+  });
+
+  it('round-trips a project through JSON and rejects bad files with a clear message', async () => {
+    const { parseProject } = await import('./project');
+    const { DEFAULT_BUDGET } = await import('./budget');
+    const data = { schema: 'tourfirm.project/1', name: 'Test', savedAt: '2026-11-06T00:00:00Z', layout: DEFAULT_LAYOUT, brandName: 'B', brandTagline: 'T', destinations: ['a', 'b', 'c', 'd', 'e'], budget: DEFAULT_BUDGET };
+    const back = parseProject(JSON.parse(JSON.stringify(data)));
+    expect(back.layout.items).toHaveLength(DEFAULT_LAYOUT.items.length);
+    expect(back.name).toBe('Test');
+    expect(() => parseProject({ hello: 1 })).toThrow(/not an Office Sandbox project/);
+    expect(() => parseProject({ ...data, layout: { ...DEFAULT_LAYOUT, items: [{ id: 'x' }] } })).toThrow(/item 1/);
+  });
+});

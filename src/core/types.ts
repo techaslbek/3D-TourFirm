@@ -17,6 +17,12 @@ export interface Item {
   h: number;
   faces?: Facing;
   shape?: 'round';
+  /** Catalogue entry this item was made from (used for the budget and model swaps). */
+  catalogId?: string;
+  /** Colour override for the item's main finish (upholstery or cabinet body). */
+  color?: string;
+  /** Hidden items are not drawn, not collided with and not counted in the budget. */
+  hidden?: boolean;
 }
 
 export type WallName = 'left' | 'right' | 'back' | 'front' | 'partition-east' | 'partition-west';
@@ -91,6 +97,25 @@ export interface CeilingRect { id: string; label: string; x0: number; y0: number
 export interface CeilingPoint { id: string; label: string; x: number; y: number }
 export type CeilingItem = CeilingRect | CeilingPoint;
 
+export type FloorFinish = 'oak' | 'light-oak' | 'walnut' | 'stone' | 'carpet-tiles';
+
+export interface Finishes {
+  floor: FloorFinish;
+  wall: string;
+  feature: string;
+  ceiling: string;
+}
+
+export interface LightingSettings {
+  /** Colour temperature of the interior lights, in kelvin (2700 warm … 4000 neutral). */
+  warmth: number;
+  /** Brightness multiplier for the interior lights (0.5 … 1.5). */
+  brightness: number;
+}
+
+export const DEFAULT_FINISHES: Finishes = { floor: 'oak', wall: '#f4eee4', feature: '#e2cdae', ceiling: '#f6f1e8' };
+export const DEFAULT_LIGHTING: LightingSettings = { warmth: 3000, brightness: 1 };
+
 export interface Layout {
   schema: string;
   name: string;
@@ -101,6 +126,8 @@ export interface Layout {
   items: Item[];
   wallItems: WallItem[];
   ceiling: CeilingItem[];
+  finishes?: Finishes;
+  lighting?: LightingSettings;
 }
 
 export interface Rect { x0: number; x1: number; y0: number; y1: number }

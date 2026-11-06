@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { PALETTE } from './palette';
-import { carpet, fabricWeave, ikat, lagan, lattice, noise, oakFloor, suzani, woodGrain } from './textures';
+import type { FloorFinish } from '../core/types';
+import { carpet, carpetTiles, fabricWeave, ikat, lagan, lattice, noise, oakFloor, stoneTiles, suzani, woodGrain } from './textures';
 
 /*
  * Shared PBR materials. Created once and reused by every model, which keeps GPU memory and
@@ -53,12 +54,22 @@ export const M = {
   lattice: () => mat('lattice', () => std({ color: '#8a5a34', map: woodGrain(), alphaMap: lattice(), alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.6 })),
 };
 
-/** Floor material, with the plank texture repeated to keep real plank size (tile = 2.4 m). */
-export function floorMaterial(width: number, depth: number) {
-  const t = oakFloor().clone();
+/** Floor finishes. Each texture tile represents 2.4 m, so the pattern keeps its real-world size. */
+const FLOORS: Record<FloorFinish, { tex: () => THREE.Texture; color: string; roughness: number }> = {
+  oak: { tex: oakFloor, color: '#d8b48a', roughness: 0.6 },
+  'light-oak': { tex: oakFloor, color: '#f3e2c9', roughness: 0.6 },
+  walnut: { tex: oakFloor, color: '#8f6a4c', roughness: 0.55 },
+  stone: { tex: stoneTiles, color: '#ffffff', roughness: 0.45 },
+  'carpet-tiles': { tex: carpetTiles, color: '#ffffff', roughness: 1 },
+};
+export const FLOOR_FINISHES = Object.keys(FLOORS) as FloorFinish[];
+
+export function floorMaterial(width: number, depth: number, finish: FloorFinish = 'oak') {
+  const f = FLOORS[finish] ?? FLOORS.oak;
+  const t = f.tex().clone();
   t.repeat.set(width / 2.4, depth / 2.4);
   t.needsUpdate = true;
-  return new THREE.MeshStandardMaterial({ color: '#d8b48a', map: t, roughness: 0.6 });
+  return new THREE.MeshStandardMaterial({ color: f.color, map: t, roughness: f.roughness });
 }
 
 /** Wall paint with a subtle plaster texture; the feature wall uses the sand tone. */
