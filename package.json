@@ -12,7 +12,8 @@
     "test": "vitest run",
     "test:e2e": "node tests/e2e/smoke.mjs",
     "validate:layout": "node tools/validate-layout.mjs data/layouts/concept-a.json",
-    "plan:svg": "node tools/render-plan.mjs data/layouts/concept-a.json docs/phase-1/floor-plan-concept-a.svg"
+    "plan:svg": "node tools/render-plan.mjs data/layouts/concept-a.json docs/phase-1/floor-plan-concept-a.svg",
+    "build:artifact": "vite build && node tools/build-artifact.mjs"
   },
   "dependencies": {
     "@react-three/drei": "10.7.9",
