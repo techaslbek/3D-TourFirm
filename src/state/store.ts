@@ -18,6 +18,11 @@ interface Settings {
   walkSpeed: number;
   collision: boolean;
   showFps: boolean;
+  /** Placeholder brand: the real name and identity are not decided yet. */
+  brandName: string;
+  brandTagline: string;
+  /** Destinations shown on posters and the TV loop (editable). */
+  destinations: string[];
 }
 
 export interface AppState extends Settings {
@@ -47,7 +52,8 @@ export interface AppState extends Settings {
 }
 
 const SETTINGS_KEY = 'tourfirm.settings.v1';
-const defaults: Settings = { lang: 'en', quality: 'balanced', autoQuality: true, eyeHeight: 1.6, walkSpeed: 1.4, collision: true, showFps: false };
+const defaults: Settings = { lang: 'en', quality: 'balanced', autoQuality: true, eyeHeight: 1.6, walkSpeed: 1.4, collision: true, showFps: false,
+  brandName: 'YOUR BRAND', brandTagline: 'Travel', destinations: ['Maldives', 'Turkey', 'Vietnam', 'Egypt', 'China'] };
 
 function loadSettings(): Settings {
   let saved: Partial<Settings> = {};
@@ -55,6 +61,7 @@ function loadSettings(): Settings {
     saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}');
   } catch { /* storage unavailable: use defaults */ }
   const s = { ...defaults, ...saved };
+  if (!Array.isArray(s.destinations) || s.destinations.length !== 5) s.destinations = defaults.destinations;
   // URL overrides (used for testing and for sharing a view): ?quality=high&auto=0&lang=ru
   try {
     const q = new URLSearchParams(location.search);
@@ -112,6 +119,7 @@ useStore.subscribe((s) => {
   const settings: Settings = {
     lang: s.lang, quality: s.quality, autoQuality: s.autoQuality, eyeHeight: s.eyeHeight,
     walkSpeed: s.walkSpeed, collision: s.collision, showFps: s.showFps,
+    brandName: s.brandName, brandTagline: s.brandTagline, destinations: s.destinations,
   };
   try {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));

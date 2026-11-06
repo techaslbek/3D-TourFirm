@@ -17,6 +17,9 @@ export const PALETTE = {
   glass: '#a9cbd8',
 };
 
+/** Height of the bottom of the pendant shades above the floor (m). */
+export const PENDANT_HEIGHT = 1.75;
+
 export const CATEGORY_COLOR: Record<string, string> = {
   seating: '#d9b48a',
   tables: PALETTE.oak,

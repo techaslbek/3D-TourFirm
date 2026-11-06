@@ -30,17 +30,16 @@ Style: cozy, contemporary, with restrained authentic Uzbek accents (one carpet, 
 ## Status
 - **Phase 0–1 done:** brief, dimensioned plan (`data/layouts/concept-a.json` is the single source of truth), layout validator, budget, site-visit checklist.
 - **Phase 2 done:** Vite + React + TypeScript + Three.js (React Three Fiber, Drei) + Zustand. Orbit / Walk (WASD, collision) / Plan / Dollhouse, camera presets, editable room size, EN/UZ/RU, quality tiers. 18 unit tests, 17-check Playwright smoke test. Report: `docs/phase-2/README.md`.
+- **Phase 3 done:** parametric furniture, procedural Uzbek accents (carpet, suzani, lattice, Rishtan ceramics, ikat), PBR materials, slat ceiling, warm lighting, contact shadows, editable brand/destinations. Report: `docs/phase-3/README.md`. N8AO ambient occlusion was removed (crashes with three r187).
 - Published as a private claude.ai page: https://claude.ai/artifact/Mui9MVEQ5iGmGBzLMGFUM2 (rebuild with `npm run build:artifact`, which writes one self-contained HTML file).
 
-## Next: Phase 3 (interior design)
-1. Measure FPS on the real laptop first and set default quality accordingly.
-2. Replace placeholder blocks with detailed **parametric** furniture (exact sizes from the layout JSON): sofa, armchairs, desks, ergonomic and visitor chairs, credenzas, tea counter, shelving, window bench, plants, lattice screen.
-3. PBR materials: oak floor, plaster walls, fabrics, felt, ceramics. Procedural suzani and carpet textures.
-4. Lighting: realistic fixtures, warm 3000 K, ambient occlusion (N8AO via `@react-three/postprocessing`) on Balanced/High only.
-5. Editable brand name, sign and destination posters (placeholders).
-6. Keep all tests green, add screenshots to `docs/phase-3/`, then ask the owner for approval.
+## Next: Phase 4 (editor)
+1. Still ask the owner for the FPS number (Balanced) and laptop model.
+2. Select, move, rotate (snap to grid and walls), add from a catalogue, duplicate, delete. Collision and clearance warnings using `tools/validate-layout.mjs` logic.
+3. Material and colour editing per object; floor, wall and ceiling finishes.
+4. Undo/redo, named versions in IndexedDB, JSON import/export, budget panel (UZS/USD, verified vs placeholder).
 
-Phase 4 = editor (select/move/rotate, catalogue, materials, undo/redo, save/load, JSON). Phase 5 = polish, exports (screenshots, floor plan, GLB), touch joystick, performance.
+Phase 5 = polish, exports (screenshots, floor plan, GLB), touch joystick, performance.
 
 ## Commands
 ```bash

@@ -8,7 +8,7 @@ import { chromium } from 'playwright';
 
 const PORT = 4173;
 const BASE = `http://localhost:${PORT}/`;
-const OUT = 'docs/phase-2/screenshots';
+const OUT = process.env.SCREENSHOTS ?? 'docs/phase-3/screenshots';
 mkdirSync(OUT, { recursive: true });
 
 const results = [];
@@ -93,10 +93,17 @@ try {
   await page.getByTestId('door-open').uncheck();
   await preset('street');
   await page.keyboard.down('w');
-  await page.waitForTimeout(3000);
+  // Hold W until the walker stops moving (or 40 s), so the check measures the door, not time.
+  let last = -99;
+  for (let i = 0; i < 40; i++) {
+    await page.waitForTimeout(1000);
+    const y = (await state()).walk.y;
+    if (Math.abs(y - last) < 0.005) break;
+    last = y;
+  }
   await page.keyboard.up('w');
   s = await state();
-  check(s.walk.y < -0.2, `Closed door blocks entry (y = ${s.walk.y.toFixed(3)} m)`);
+  check(s.walk.y < -0.2 && s.walk.y > -0.4, `Closed door blocks entry (y = ${s.walk.y.toFixed(3)} m)`);
   await page.getByTestId('door-open').check();
 
   // Turning and strafing
@@ -147,16 +154,27 @@ try {
   await shot('14-uzbek-ui');
   await page.selectOption('[data-testid=lang]', 'en');
 
+  // Brand editing updates the placeholder brand everywhere
+  await page.fill('[data-testid=brand-name]', 'Silk Road Travel');
+  await frames(4);
+  s = await state();
+  const brand = await page.evaluate(() => window.__tourfirm.getState().brandName);
+  check(brand === 'Silk Road Travel', `Brand name is editable ("${brand}")`);
+  await preset('entrance');
+  await shot('15-brand-edited');
+  await page.fill('[data-testid=brand-name]', 'YOUR BRAND');
+  await page.evaluate(() => document.activeElement?.blur());
+
   // Help overlay
   await page.keyboard.press('h');
   check(await page.locator('.modal').isVisible(), 'H opens the controls guide');
-  await shot('15-help');
+  await shot('16-help');
   await page.keyboard.press('Escape');
 
   // Phone-sized viewport
   await page.setViewportSize({ width: 390, height: 844 });
   await preset('overview');
-  await shot('16-phone-overview');
+  await shot('17-phone-overview');
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   check(!overflow, 'No horizontal page overflow at phone width');
 

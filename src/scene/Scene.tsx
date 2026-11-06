@@ -5,7 +5,7 @@ import { CameraRig } from '../controls/CameraRig';
 import { debug } from '../debug';
 import { useStore, type Quality } from '../state/store';
 import { Architecture } from './Architecture';
-import { DPR, Exterior, Lighting, Overlays } from './Environment';
+import { DPR, Effects, Exterior, Lighting, Overlays } from './Environment';
 import { Furniture } from './Furniture';
 import { WallItems } from './WallItems';
 
@@ -13,7 +13,7 @@ export function Scene() {
   const quality = useStore.getState().quality;
   return (
     <Canvas
-      shadows
+      shadows="percentage"
       dpr={DPR[quality]}
       camera={{ fov: 55, near: 0.05, far: 250, position: [5, 6.5, 7.5] }}
       gl={{ antialias: true, powerPreference: 'high-performance' }}
@@ -32,6 +32,7 @@ export function Scene() {
       <WallItems />
       <Overlays />
       <CameraRig />
+      <Effects />
       <FrameStats />
     </Canvas>
   );

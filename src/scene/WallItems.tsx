@@ -1,9 +1,12 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import * as THREE from 'three';
 import type { Layout, WallItem } from '../core/types';
 import { isCeilingRect } from '../core/types';
 import { useStore } from '../state/store';
 import { useCeilingVisible } from './Architecture';
-import { PALETTE, textTexture } from './palette';
+import { M } from './materials';
+import { PALETTE, PENDANT_HEIGHT, textTexture } from './palette';
+import { poster } from './textures';
 
 /** Position on a wall face and the rotation that makes +Z point away from the wall, into the room. */
 function wallPose(w: WallItem, layout: Layout): { x: number; y: number; rotY: number } | null {
@@ -39,86 +42,166 @@ export function WallItems() {
   );
 }
 
-function WallThing({ item }: { item: WallItem }) {
-  const h = item.z1 - item.z0;
-  const zc = (item.z0 + item.z1) / 2;
-  const id = item.id;
-  const panel = (depth: number, color: string, extra?: { rough?: number; metal?: number }) => (
-    <mesh position={[0, zc, depth / 2 + 0.002]} castShadow>
-      <boxGeometry args={[item.width, h, depth]} />
-      <meshStandardMaterial color={color} roughness={extra?.rough ?? 0.8} metalness={extra?.metal ?? 0} />
+function Panel({ item, depth, m }: { item: WallItem; depth: number; m: THREE.Material }) {
+  return (
+    <mesh position={[0, (item.z0 + item.z1) / 2, depth / 2 + 0.002]} material={m} castShadow receiveShadow>
+      <boxGeometry args={[item.width, item.z1 - item.z0, depth]} />
     </mesh>
   );
+}
 
+function WallThing({ item }: { item: WallItem }) {
+  const id = item.id;
+  const h = item.z1 - item.z0;
+  const zc = (item.z0 + item.z1) / 2;
   if (id.startsWith('brand')) return <BrandPanel item={item} />;
-  if (id.startsWith('tv')) {
-    return (
-      <group>
-        {panel(0.04, '#111214', { rough: 0.3 })}
-        <mesh position={[0, zc, 0.043]}>
-          <planeGeometry args={[item.width - 0.03, h - 0.03]} />
-          <meshBasicMaterial color={PALETTE.turquoise} toneMapped={false} />
-        </mesh>
-      </group>
-    );
-  }
-  if (id.startsWith('ac-')) return panel(0.22, '#f7f7f5', { rough: 0.4 });
-  if (id.startsWith('extinguisher')) {
-    return (
-      <mesh position={[0, zc, 0.09]} castShadow>
-        <cylinderGeometry args={[0.075, 0.075, h, 16]} />
-        <meshStandardMaterial color="#c62828" roughness={0.35} />
-      </mesh>
-    );
-  }
-  if (id.startsWith('first-aid')) return panel(0.12, '#2e7d32', { rough: 0.5 });
+  if (id.startsWith('tv')) return <Tv item={item} />;
+  if (id.startsWith('poster')) return <Poster item={item} index={Number(id.split('-')[1] ?? 1) - 1} />;
   if (id.startsWith('suzani')) {
     return (
       <group>
-        {panel(0.03, PALETTE.walnut)}
-        <mesh position={[0, zc, 0.034]}>
-          <planeGeometry args={[item.width - 0.1, h - 0.1]} />
-          <meshStandardMaterial color={PALETTE.terracotta} roughness={0.9} />
+        <Panel item={item} depth={0.035} m={M.walnut()} />
+        <mesh position={[0, zc, 0.038]} material={M.suzani()}>
+          <planeGeometry args={[item.width - 0.08, h - 0.08]} />
         </mesh>
       </group>
     );
   }
-  if (id.startsWith('posters')) {
-    const colors = [PALETTE.turquoise, PALETTE.saffron];
+  if (id.startsWith('ac-')) {
     return (
       <group>
-        {colors.map((c, k) => (
-          <mesh key={c} position={[0, item.z0 + (h / 2) * (k + 0.5), 0.012]}>
-            <boxGeometry args={[item.width, h / 2 - 0.04, 0.02]} />
-            <meshStandardMaterial color={c} roughness={0.7} />
+        <mesh position={[0, zc, 0.11]} material={M.plasticWhite()} castShadow>
+          <boxGeometry args={[item.width, h, 0.2]} />
+        </mesh>
+        <mesh position={[0, item.z0 + 0.04, 0.2]} material={M.plasticGrey()}>
+          <boxGeometry args={[item.width * 0.8, 0.02, 0.03]} />
+        </mesh>
+      </group>
+    );
+  }
+  if (id.startsWith('extinguisher')) {
+    return (
+      <group>
+        <mesh position={[0, zc - 0.03, 0.09]} castShadow>
+          <cylinderGeometry args={[0.075, 0.075, h - 0.1, 18]} />
+          <meshStandardMaterial color="#c62828" roughness={0.35} />
+        </mesh>
+        <mesh position={[0, item.z1 - 0.05, 0.09]} material={M.metalBlack()}>
+          <cylinderGeometry args={[0.03, 0.04, 0.1, 10]} />
+        </mesh>
+        <mesh position={[0, item.z1 + 0.2, 0.004]}>
+          <planeGeometry args={[0.2, 0.2]} />
+          <meshStandardMaterial color="#c62828" />
+        </mesh>
+      </group>
+    );
+  }
+  if (id.startsWith('first-aid')) {
+    return (
+      <group>
+        <Panel item={item} depth={0.12} m={M.plasticWhite()} />
+        <mesh position={[0, zc, 0.125]}>
+          <planeGeometry args={[0.1, 0.03]} />
+          <meshStandardMaterial color="#2e7d32" />
+        </mesh>
+        <mesh position={[0, zc, 0.125]}>
+          <planeGeometry args={[0.03, 0.1]} />
+          <meshStandardMaterial color="#2e7d32" />
+        </mesh>
+      </group>
+    );
+  }
+  if (id.startsWith('router')) {
+    return (
+      <group>
+        <mesh position={[0, item.z0, 0.12]} material={M.oak()} castShadow>
+          <boxGeometry args={[item.width + 0.1, 0.025, 0.24]} />
+        </mesh>
+        <mesh position={[0, item.z0 + 0.04, 0.12]} material={M.plasticDark()}>
+          <boxGeometry args={[0.24, 0.05, 0.16]} />
+        </mesh>
+      </group>
+    );
+  }
+  if (id.startsWith('hooks')) {
+    return (
+      <group>
+        <Panel item={item} depth={0.025} m={M.walnut()} />
+        {[-0.2, 0, 0.2].map((x) => (
+          <mesh key={x} position={[x * item.width, zc - 0.04, 0.06]} rotation-x={0.6} material={M.metalBlack()}>
+            <cylinderGeometry args={[0.008, 0.008, 0.09, 6]} />
           </mesh>
         ))}
       </group>
     );
   }
-  if (id.startsWith('router')) return panel(0.22, '#2b2b2e', { rough: 0.6 });
-  if (id.startsWith('hooks')) return panel(0.06, PALETTE.walnut, { rough: 0.5 });
-  if (id.startsWith('evac')) return panel(0.01, '#f2f2f0');
-  return panel(0.03, PALETTE.sand);
+  if (id.startsWith('evac')) return <Panel item={item} depth={0.01} m={M.paper()} />;
+  return <Panel item={item} depth={0.03} m={M.sandLacquer()} />;
 }
 
-function BrandPanel({ item }: { item: WallItem }) {
-  const texture = useMemo(() => textTexture('YOUR BRAND', { bg: PALETTE.cobalt, fg: '#f4eee4', sub: 'placeholder · editable in Phase 4', w: 768, h: 512 }), []);
-  useEffect(() => () => texture.dispose(), [texture]);
+function Poster({ item, index }: { item: WallItem; index: number }) {
+  const dest = useStore((s) => s.destinations[index % s.destinations.length] ?? '');
+  const brand = useStore((s) => s.brandName);
+  const tex = useMemo(() => poster(dest, brand), [dest, brand]);
+  useEffect(() => () => tex.dispose(), [tex]);
   const h = item.z1 - item.z0;
   return (
-    <mesh position={[0, (item.z0 + item.z1) / 2, 0.015]}>
-      <boxGeometry args={[item.width, h, 0.03]} />
-      <meshStandardMaterial attach="material-0" color={PALETTE.cobalt} />
-      <meshStandardMaterial attach="material-1" color={PALETTE.cobalt} />
-      <meshStandardMaterial attach="material-2" color={PALETTE.cobalt} />
-      <meshStandardMaterial attach="material-3" color={PALETTE.cobalt} />
-      <meshStandardMaterial attach="material-4" map={texture} roughness={0.6} />
-      <meshStandardMaterial attach="material-5" color={PALETTE.cobalt} />
-    </mesh>
+    <group>
+      <Panel item={item} depth={0.025} m={M.walnut()} />
+      <mesh position={[0, (item.z0 + item.z1) / 2, 0.028]}>
+        <planeGeometry args={[item.width - 0.04, h - 0.04]} />
+        <meshStandardMaterial map={tex} roughness={0.6} />
+      </mesh>
+    </group>
   );
 }
 
+/** TV cycling through the destination posters every 6 seconds (a stand-in for a video loop). */
+function Tv({ item }: { item: WallItem }) {
+  const destinations = useStore((s) => s.destinations);
+  const brand = useStore((s) => s.brandName);
+  const [k, setK] = useState(3); // start after the three wall posters so the TV shows something different
+  useEffect(() => {
+    const id = setInterval(() => setK((v) => v + 1), 6000);
+    return () => clearInterval(id);
+  }, []);
+  const name = destinations[k % destinations.length] ?? '';
+  const tex = useMemo(() => poster(name, brand, true), [name, brand]);
+  useEffect(() => () => tex.dispose(), [tex]);
+  const h = item.z1 - item.z0;
+  return (
+    <group>
+      <Panel item={item} depth={0.04} m={M.screen()} />
+      <mesh position={[0, (item.z0 + item.z1) / 2, 0.043]}>
+        <planeGeometry args={[item.width - 0.03, h - 0.03]} />
+        <meshBasicMaterial map={tex} toneMapped={false} />
+      </mesh>
+    </group>
+  );
+}
+
+function BrandPanel({ item }: { item: WallItem }) {
+  const name = useStore((s) => s.brandName);
+  const tagline = useStore((s) => s.brandTagline);
+  const texture = useMemo(() => textTexture(name || ' ', { bg: PALETTE.cobalt, fg: '#f4eee4', sub: tagline, w: 768, h: 512 }), [name, tagline]);
+  useEffect(() => () => texture.dispose(), [texture]);
+  const h = item.z1 - item.z0;
+  return (
+    <group>
+      <mesh position={[0, (item.z0 + item.z1) / 2, 0.015]} castShadow>
+        <boxGeometry args={[item.width, h, 0.03]} />
+        <meshStandardMaterial attach="material-0" color={PALETTE.cobalt} />
+        <meshStandardMaterial attach="material-1" color={PALETTE.cobalt} />
+        <meshStandardMaterial attach="material-2" color={PALETTE.cobalt} />
+        <meshStandardMaterial attach="material-3" color={PALETTE.cobalt} />
+        <meshStandardMaterial attach="material-4" map={texture} roughness={0.6} emissive="#ffffff" emissiveMap={texture} emissiveIntensity={0.15} />
+        <meshStandardMaterial attach="material-5" color={PALETTE.cobalt} />
+      </mesh>
+    </group>
+  );
+}
+
+/** Pendant fittings (cord, shade, bulb). Their light sources live in Lighting. */
 function Pendants({ layout }: { layout: Layout }) {
   const mode = useStore((s) => s.cameraMode);
   const ceilingVisible = useCeilingVisible();
@@ -130,22 +213,22 @@ function Pendants({ layout }: { layout: Layout }) {
     <group name="pendants">
       {points.map((p) => {
         const top = rafts.some((r) => p.x > r.x0 && p.x < r.x1 && p.y > r.y0 && p.y < r.y1) ? H - 0.25 : H;
-        const bottom = 1.75;
+        const bottom = PENDANT_HEIGHT;
         return (
           <group key={p.id} position={[p.x, 0, -p.y]}>
             {ceilingVisible && (
-              <mesh position={[0, (top + bottom) / 2, 0]}>
+              <mesh position={[0, (top + bottom) / 2, 0]} material={M.metalBlack()}>
                 <cylinderGeometry args={[0.004, 0.004, top - bottom, 6]} />
-                <meshBasicMaterial color="#222" />
               </mesh>
             )}
-            <mesh position={[0, bottom, 0]} castShadow>
-              <cylinderGeometry args={[0.06, 0.17, 0.22, 24, 1, true]} />
-              <meshStandardMaterial color={PALETTE.saffron} roughness={0.5} side={2} />
+            <mesh position={[0, bottom, 0]} material={M.lampShade()} castShadow>
+              <cylinderGeometry args={[0.07, 0.19, 0.24, 28, 1, true]} />
             </mesh>
-            <mesh position={[0, bottom - 0.06, 0]}>
+            <mesh position={[0, bottom + 0.12, 0]} material={M.ceramicCobalt()}>
+              <cylinderGeometry args={[0.07, 0.07, 0.02, 20]} />
+            </mesh>
+            <mesh position={[0, bottom - 0.05, 0]} material={M.bulb()}>
               <sphereGeometry args={[0.05, 12, 8]} />
-              <meshBasicMaterial color="#fff1d0" toneMapped={false} />
             </mesh>
           </group>
         );

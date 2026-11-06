@@ -5,7 +5,7 @@ export type Lang = 'en' | 'uz' | 'ru';
 // Uzbek (Latin) and Russian strings are DRAFT translations and need review by a native speaker.
 const en = {
   appTitle: 'Office Sandbox',
-  phaseBadge: 'Phase 2 preview: navigation and room shell',
+  phaseBadge: 'Phase 3 preview: furniture, materials and lighting',
   orbit: 'Orbit',
   walk: 'Walk',
   plan: 'Plan',
@@ -71,13 +71,18 @@ const en = {
   helpPlan: 'Plan: drag to pan · wheel or pinch zoom',
   helpKeys: 'Shortcuts: 1 Orbit · 2 Walk · 3 Plan · 4 Dollhouse · R reset view · H help',
   helpNote: 'Everything shown is an assumed 60 m² unit. Furniture is placeholder geometry until Phase 3.',
+  brand: 'Brand and posters',
+  brandName: 'Brand name',
+  brandTagline: 'Tagline',
+  destinationsLabel: 'Destinations (posters and TV)',
+  brandNote: 'Placeholder until the real brand is chosen.',
 };
 
 type Dict = Record<keyof typeof en, string>;
 
 const uz: Dict = {
   appTitle: 'Ofis maketi',
-  phaseBadge: '2-bosqich: navigatsiya va xona qobigʻi',
+  phaseBadge: '3-bosqich: mebel, materiallar va yoritish',
   orbit: 'Aylanish',
   walk: 'Yurish',
   plan: 'Reja',
@@ -143,11 +148,16 @@ const uz: Dict = {
   helpPlan: 'Reja: surish uchun torting · gʻildirak yoki chimdish bilan yaqinlashtirish',
   helpKeys: 'Tugmalar: 1 Aylanish · 2 Yurish · 3 Reja · 4 Maket · R tiklash · H yordam',
   helpNote: 'Koʻrsatilgan hamma narsa taxminiy 60 m² xona. Mebel 3-bosqichgacha oddiy shakllarda.',
+  brand: 'Brend va plakatlar',
+  brandName: 'Brend nomi',
+  brandTagline: 'Shior',
+  destinationsLabel: 'Yoʻnalishlar (plakatlar va TV)',
+  brandNote: 'Haqiqiy brend tanlanguncha vaqtinchalik.',
 };
 
 const ru: Dict = {
   appTitle: 'Макет офиса',
-  phaseBadge: 'Этап 2: навигация и оболочка помещения',
+  phaseBadge: 'Этап 3: мебель, материалы и освещение',
   orbit: 'Орбита',
   walk: 'Прогулка',
   plan: 'План',
@@ -213,6 +223,11 @@ const ru: Dict = {
   helpPlan: 'План: перетаскивание — сдвиг · колесо или щипок — масштаб',
   helpKeys: 'Клавиши: 1 Орбита · 2 Прогулка · 3 План · 4 Макет · R сброс · H справка',
   helpNote: 'Всё показанное — предполагаемое помещение 60 м². Мебель — условные формы до этапа 3.',
+  brand: 'Бренд и постеры',
+  brandName: 'Название бренда',
+  brandTagline: 'Слоган',
+  destinationsLabel: 'Направления (постеры и ТВ)',
+  brandNote: 'Временно, пока бренд не выбран.',
 };
 
 export const dictionaries: Record<Lang, Dict> = { en, uz, ru };

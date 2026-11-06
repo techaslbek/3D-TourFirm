@@ -150,6 +150,33 @@ function SidePanel() {
         <button onClick={s.resetRoom}>{t('resetRoom')}</button>
       </section>
       <section>
+        <h3>{t('brand')}</h3>
+        <label className="row" htmlFor="brand-name">
+          <span>{t('brandName')}</span>
+          <input id="brand-name" data-testid="brand-name" className="text" type="text" maxLength={40} value={s.brandName} onChange={(e) => s.set({ brandName: e.target.value })} />
+        </label>
+        <label className="row" htmlFor="brand-tagline">
+          <span>{t('brandTagline')}</span>
+          <input id="brand-tagline" className="text" type="text" maxLength={60} value={s.brandTagline} onChange={(e) => s.set({ brandTagline: e.target.value })} />
+        </label>
+        <div className="row">
+          <span>{t('destinationsLabel')}</span>
+          {s.destinations.map((d, k) => (
+            <input
+              key={k}
+              id={`destination-${k}`}
+              aria-label={`${t('destinationsLabel')} ${k + 1}`}
+              className="text"
+              type="text"
+              maxLength={24}
+              value={d}
+              onChange={(e) => s.set({ destinations: s.destinations.map((v, j) => (j === k ? e.target.value : v)) })}
+            />
+          ))}
+        </div>
+        <p className="note">{t('brandNote')}</p>
+      </section>
+      <section>
         <h3>{t('layers')}</h3>
         <label className="row">
           <span>{t('walls')}</span>

@@ -154,3 +154,25 @@ describe('camera presets', () => {
     }
   });
 });
+
+describe('furniture models', () => {
+  it('maps every item in the default layout to a dedicated model', async () => {
+    const { modelKind } = await import('./furniture');
+    const generic = DEFAULT_LAYOUT.items.filter((i) => modelKind(i) === 'generic').map((i) => i.id);
+    expect(generic).toEqual([]);
+  });
+
+  it('swaps local width and depth for items facing sideways', async () => {
+    const { localFrame } = await import('./furniture');
+    expect(localFrame({ w: 0.4, d: 1.2, faces: '-x' })).toEqual({ rotY: Math.PI / 2, W: 1.2, D: 0.4 });
+    expect(localFrame({ w: 1.4, d: 0.7, faces: '-y' })).toEqual({ rotY: Math.PI, W: 1.4, D: 0.7 });
+    expect(localFrame({ w: 2, d: 0.9, faces: '+y' })).toEqual({ rotY: 0, W: 2, D: 0.9 });
+  });
+
+  it('puts the front of a +x facing model towards +x in three.js space', async () => {
+    const { localFrame } = await import('./furniture');
+    const { rotY } = localFrame({ w: 0.8, d: 0.8, faces: '+x' });
+    // Local front is -Z; rotating about Y by rotY gives x' = -sin(rotY)
+    expect(-Math.sin(rotY)).toBeCloseTo(1);
+  });
+});

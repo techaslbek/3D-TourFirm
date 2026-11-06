@@ -6,6 +6,7 @@ import type { Layout, Partition } from '../core/types';
 import { isCeilingRect } from '../core/types';
 import { useStore, type WallMode } from '../state/store';
 import { FasciaSign } from './Environment';
+import { floorMaterial, M, wallMaterial } from './materials';
 import { PALETTE } from './palette';
 
 const T = WALL_THICKNESS;
@@ -35,10 +36,11 @@ export function Architecture() {
 
 function Floor({ layout }: { layout: Layout }) {
   const { width: W, depth: D } = layout.room;
+  const material = useMemo(() => floorMaterial(W, D), [W, D]);
+  useEffect(() => () => { material.map?.dispose(); material.dispose(); }, [material]);
   return (
-    <mesh name="floor" rotation-x={-Math.PI / 2} position={[W / 2, 0, -D / 2]} receiveShadow>
+    <mesh name="floor" rotation-x={-Math.PI / 2} position={[W / 2, 0, -D / 2]} material={material} receiveShadow>
       <planeGeometry args={[W, D]} />
-      <meshStandardMaterial color={PALETTE.floorOak} roughness={0.72} />
     </mesh>
   );
 }
@@ -56,7 +58,8 @@ function wallBox(wall: ExteriorWall, u0: number, u1: number, v0: number, v1: num
 function ExteriorWallMesh({ wall, height }: { wall: ExteriorWall; height: number }) {
   const full = useRef<THREE.Group>(null);
   const stub = useRef<THREE.Group>(null);
-  const material = useMemo(() => new THREE.MeshStandardMaterial({ color: PALETTE.ivory, roughness: 0.92 }), []);
+  // The left (lounge) wall is the warm sand feature wall from the concept palette.
+  const material = useMemo(() => wallMaterial(wall.id === 'left' ? '#e2cdae' : PALETTE.ivory), [wall.id]);
   const stubMaterial = useMemo(() => new THREE.MeshStandardMaterial({ color: PALETTE.sand, roughness: 0.9 }), []);
   const wallMode = useStore((s) => s.wallMode);
   const cameraMode = useStore((s) => s.cameraMode);
@@ -225,9 +228,8 @@ function PartitionMesh({ p, height }: { p: Partition; height: number }) {
           ? [(s.u0 + s.u1) / 2, (s.v0 + s.v1) / 2, -(p.y0 + p.y1) / 2]
           : [(p.x0 + p.x1) / 2, (s.v0 + s.v1) / 2, -(s.u0 + s.u1) / 2];
         return (
-          <mesh key={k} position={pos} castShadow receiveShadow>
+          <mesh key={k} position={pos} material={partitionMaterial()} castShadow receiveShadow>
             <boxGeometry args={size} />
-            <meshStandardMaterial color={PALETTE.ivory} roughness={0.92} />
           </mesh>
         );
       })}
@@ -235,10 +237,17 @@ function PartitionMesh({ p, height }: { p: Partition; height: number }) {
         // Sliding door leaf parked beside its opening, on the service-area face.
         const w = o.x1 - o.x0;
         return (
-          <mesh key={o.id} position={[o.x0 - w / 2 + 0.03, PARTITION_DOOR_HEIGHT / 2, -(p.y0 - 0.03)]} castShadow>
-            <boxGeometry args={[w + 0.06, PARTITION_DOOR_HEIGHT, 0.04]} />
-            <meshStandardMaterial color={PALETTE.oak} roughness={0.6} />
-          </mesh>
+          <group key={o.id}>
+            <mesh position={[o.x0 - w / 2 + 0.03, PARTITION_DOOR_HEIGHT / 2, -(p.y0 - 0.03)]} material={M.oak()} castShadow>
+              <boxGeometry args={[w + 0.06, PARTITION_DOOR_HEIGHT, 0.04]} />
+            </mesh>
+            <mesh position={[o.x0 - w / 2 + 0.03, PARTITION_DOOR_HEIGHT + 0.03, -(p.y0 - 0.05)]} material={M.metalBlack()}>
+              <boxGeometry args={[2 * w + 0.1, 0.04, 0.03]} />
+            </mesh>
+            <mesh position={[o.x0 - 0.06, 1.0, -(p.y0 - 0.06)]} material={M.metalBlack()}>
+              <boxGeometry args={[0.02, 0.3, 0.02]} />
+            </mesh>
+          </group>
         );
       })}
     </group>
@@ -257,25 +266,57 @@ function Ceiling({ layout }: { layout: Layout }) {
   const rafts = layout.ceiling.filter(isCeilingRect);
   return (
     <group name="ceiling" visible={visible}>
-      <mesh rotation-x={Math.PI / 2} position={[W / 2, H, -D / 2]}>
-        <planeGeometry args={[W, D]} />
-        <meshStandardMaterial color={PALETTE.ivory} roughness={0.95} />
+      <mesh rotation-x={Math.PI / 2} position={[W / 2, H, -D / 2]} castShadow material={ceilingMaterial()}>
+        <planeGeometry args={[W + 0.4, D + 0.4]} />
       </mesh>
-      {rafts.map((r) => (
-        <mesh key={r.id} position={[(r.x0 + r.x1) / 2, H - 0.25, -(r.y0 + r.y1) / 2]}>
-          <boxGeometry args={[r.x1 - r.x0, 0.05, r.y1 - r.y0]} />
-          <meshStandardMaterial color={PALETTE.oak} roughness={0.6} />
-        </mesh>
-      ))}
+      {rafts.map((r) => <SlatRaft key={r.id} x0={r.x0} x1={r.x1} y0={r.y0} y1={r.y1} y={H - 0.25} />)}
       {lights.map(([x, y]) => {
         const underRaft = rafts.some((r) => x > r.x0 && x < r.x1 && y > r.y0 && y < r.y1);
         return (
-          <mesh key={`${x}-${y}`} rotation-x={Math.PI / 2} position={[x, (underRaft ? H - 0.25 - 0.026 : H - 0.005), -y]}>
+          <mesh key={`${x}-${y}`} rotation-x={Math.PI / 2} position={[x, (underRaft ? H - 0.25 - 0.052 : H - 0.005), -y]}>
             <circleGeometry args={[0.07, 20]} />
-            <meshBasicMaterial color="#fff3dc" />
+            <meshBasicMaterial color="#fff3dc" toneMapped={false} />
           </mesh>
         );
       })}
+    </group>
+  );
+}
+
+const partitionMaterial = (() => {
+  let m: THREE.Material | null = null;
+  return () => (m ??= wallMaterial(PALETTE.ivory));
+})();
+const ceilingMaterial = (() => {
+  let m: THREE.Material | null = null;
+  return () => (m ??= wallMaterial('#f6f1e8'));
+})();
+
+/** Oak slat ceiling raft on black acoustic felt (slats 40 mm wide at 80 mm centres). */
+function SlatRaft({ x0, x1, y0, y1, y }: { x0: number; x1: number; y0: number; y1: number; y: number }) {
+  const ref = useRef<THREE.InstancedMesh>(null);
+  const pitch = 0.08, slatW = 0.04, slatH = 0.05;
+  const n = Math.max(1, Math.floor((x1 - x0) / pitch));
+  const geo = useMemo(() => new THREE.BoxGeometry(slatW, slatH, y1 - y0), [y0, y1]);
+  useEffect(() => () => geo.dispose(), [geo]);
+  useEffect(() => {
+    const mesh = ref.current;
+    if (!mesh) return;
+    const o = new THREE.Object3D();
+    for (let i = 0; i < n; i++) {
+      o.position.set(x0 + pitch / 2 + i * pitch, y - slatH / 2, -(y0 + y1) / 2);
+      o.updateMatrix();
+      mesh.setMatrixAt(i, o.matrix);
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.computeBoundingSphere();
+  }, [n, x0, y0, y1, y]);
+  return (
+    <group>
+      <mesh position={[(x0 + x1) / 2, y + 0.01, -(y0 + y1) / 2]} material={M.feltDark()}>
+        <boxGeometry args={[x1 - x0, 0.02, y1 - y0]} />
+      </mesh>
+      <instancedMesh key={n} ref={ref} args={[geo, M.oak(), n]} castShadow receiveShadow />
     </group>
   );
 }

@@ -2,7 +2,7 @@
 
 A browser-based, interactive 3D planning tool for a future travel agency office in Tashkent. It is used to walk through, redesign and budget the space before renting and furnishing a real unit. It runs locally, needs no account, server or paid service, and works offline once installed.
 
-**Current phase: 2 (navigable 3D foundation), awaiting review.** See [docs/phase-2/README.md](docs/phase-2/README.md). New session? Start with [docs/HANDOFF.md](docs/HANDOFF.md).
+**Current phase: 3 (interior design), awaiting review.** See [docs/phase-3/README.md](docs/phase-3/README.md). New session? Start with [docs/HANDOFF.md](docs/HANDOFF.md).
 
 ## Run it on your computer (Windows, macOS or Linux)
 

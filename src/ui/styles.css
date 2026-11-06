@@ -71,13 +71,14 @@ select { background: var(--control); border: 1px solid var(--line); border-radiu
 .panel section:last-child { border-bottom: 0; }
 .panel h3 { margin: 4px 0 8px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--warm); }
 .panel-toggle { position: absolute; top: 6px; right: 6px; padding: 2px 8px; }
-.panel-toggle.closed { position: fixed; top: 92px; left: 10px; z-index: 15; box-shadow: var(--shadow); }
+.panel-toggle.closed { position: fixed; top: 92px; left: 10px; right: auto; z-index: 15; box-shadow: var(--shadow); }
 .num { margin-bottom: 8px; }
 .num label { display: block; color: var(--muted); margin-bottom: 2px; }
 .num-row { display: flex; align-items: center; gap: 6px; }
 .num-row input[type=range] { flex: 1; min-width: 0; }
 .num-row input[type=number] { width: 66px; border: 1px solid var(--line); border-radius: 6px; padding: 3px 4px; background: var(--control); }
 .unit { color: var(--muted); }
+input.text { width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; background: var(--control); color: var(--ink); margin-bottom: 4px; }
 .row { display: flex; flex-direction: column; gap: 3px; margin-bottom: 8px; color: var(--muted); }
 .row em { font-style: normal; color: var(--ink); }
 .check { display: flex; align-items: center; gap: 8px; margin: 4px 0; cursor: pointer; }

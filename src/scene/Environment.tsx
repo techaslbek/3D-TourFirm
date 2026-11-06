@@ -1,16 +1,22 @@
-import { Environment as DreiEnvironment, Grid, Html, Lightformer } from '@react-three/drei';
+import { ContactShadows, Environment as DreiEnvironment, Grid, Html, Lightformer } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { WALL_THICKNESS } from '../core/geometry';
 import { useStore, type Quality } from '../state/store';
 import { useT } from '../ui/i18n';
-import { PALETTE, textTexture } from './palette';
+import { isCeilingRect } from '../core/types';
+import { PALETTE, PENDANT_HEIGHT, textTexture } from './palette';
 
 const SHADOW_SIZE: Record<Quality, number> = { low: 512, balanced: 1024, high: 2048 };
 const DPR: Record<Quality, [number, number]> = { low: [1, 1], balanced: [1, 1.5], high: [1, 2] };
 
-/** Lights. All procedural; no downloaded HDR files, so the app works offline. */
+/**
+ * Lights. All procedural, no downloaded HDR files, so the app works offline.
+ * Sources follow the lighting concept: warm 3000 K ceiling downlights, pendants over the desks
+ * and coffee table, the lounge floor lamp, and daylight through the shopfront.
+ * Low quality keeps 3 fill lights and no shadows; Balanced/High add the fittings and sun shadows.
+ */
 export function Lighting() {
   const layout = useStore((s) => s.layout);
   const quality = useStore((s) => s.quality);
@@ -34,24 +40,25 @@ export function Lighting() {
     return o;
   }, [W, D]);
 
-  // Interior fill lights standing in for the downlights (no shadows: cheap on integrated GPUs).
+  // Ceiling fills standing in for the recessed downlights (no shadows: cheap on integrated GPUs).
   const fills = useMemo(() => {
-    const pts: [number, number][] = [[W * 0.2, D * 0.3], [W * 0.5, D * 0.25], [W * 0.8, D * 0.3], [W * 0.25, D * 0.75], [W * 0.75, D * 0.7]];
-    return quality === 'low' ? pts.filter((_, k) => k % 2 === 0) : pts;
+    const pts: [number, number][] = [[W * 0.2, D * 0.35], [W * 0.5, D * 0.3], [W * 0.82, D * 0.3], [W * 0.3, D * 0.78], [W * 0.75, D * 0.72]];
+    return quality === 'low' ? [pts[0], pts[2], pts[3]] : pts;
   }, [W, D, quality]);
-  const fillIntensity = quality === 'low' ? 5.5 : 3.6;
+  const pendants = layout.ceiling.filter((c) => !isCeilingRect(c)) as { id: string; x: number; y: number }[];
+  const lamp = layout.items.find((i) => i.id.startsWith('floor-lamp'));
+  const fittings = quality !== 'low';
 
   return (
     <>
-      <hemisphereLight args={['#fff6ea', '#8a6a4a', 0.9]} />
-      <ambientLight intensity={0.15} />
+      <hemisphereLight args={['#fff4e6', '#7a5c40', quality === 'low' ? 1.0 : 0.65]} />
       <primitive object={target} />
       <directionalLight
         ref={sun}
-        position={[W / 2 + 5, 9, 9]}
+        position={[W / 2 + 4, 8, 9]}
         target={target}
-        intensity={1.8}
-        color="#fff1df"
+        intensity={2.2}
+        color="#fff0dc"
         shadow-bias={-0.0004}
         shadow-normalBias={0.03}
         shadow-camera-left={-10}
@@ -62,14 +69,47 @@ export function Lighting() {
         shadow-camera-far={40}
       />
       {fills.map(([x, y]) => (
-        <pointLight key={`${x}-${y}`} position={[x, H - 0.35, -y]} intensity={fillIntensity} distance={9} decay={1.6} color="#ffe2bd" />
+        <pointLight key={`f-${x}-${y}`} position={[x, H - 0.3, -y]} intensity={quality === 'low' ? 6 : 4.2} distance={10} decay={1.5} color="#ffe3c2" />
       ))}
+      {fittings && pendants.map((p) => (
+        <pointLight key={p.id} position={[p.x, PENDANT_HEIGHT - 0.1, -p.y]} intensity={1.6} distance={4.5} decay={2} color="#ffd6a0" />
+      ))}
+      {fittings && lamp && (
+        <pointLight position={[lamp.x, lamp.h - 0.2, -lamp.y]} intensity={1.4} distance={4} decay={2} color="#ffd29a" />
+      )}
       <DreiEnvironment resolution={64} frames={1}>
-        <Lightformer form="rect" intensity={1.2} color="#fff4e6" position={[0, 6, 0]} rotation-x={Math.PI / 2} scale={[12, 12, 1]} />
-        <Lightformer form="rect" intensity={0.6} color="#dfe9f2" position={[0, 2, 8]} scale={[10, 4, 1]} />
-        <Lightformer form="rect" intensity={0.3} color="#f3e1c8" position={[-8, 2, 0]} rotation-y={Math.PI / 2} scale={[10, 4, 1]} />
+        <Lightformer form="rect" intensity={1.1} color="#fff4e6" position={[0, 6, 0]} rotation-x={Math.PI / 2} scale={[12, 12, 1]} />
+        <Lightformer form="rect" intensity={0.7} color="#dfe9f2" position={[0, 2, 8]} scale={[10, 4, 1]} />
+        <Lightformer form="rect" intensity={0.35} color="#f3e1c8" position={[-8, 2, 0]} rotation-y={Math.PI / 2} scale={[10, 4, 1]} />
       </DreiEnvironment>
     </>
+  );
+}
+
+/**
+ * Soft contact shadows under furniture and along wall bases, rendered once from the floor and
+ * re-baked when the layout or quality changes (cheap enough for integrated GPUs).
+ * Balanced: 1024 px. High: 2048 px. Low: off.
+ * (Screen-space AO via N8AO was tried and removed: it fails with three.js r187 render targets.)
+ */
+export function Effects() {
+  const quality = useStore((s) => s.quality);
+  const layout = useStore((s) => s.layout);
+  const showFurniture = useStore((s) => s.showFurniture);
+  if (quality === 'low') return null;
+  const { width: W, depth: D } = layout.room;
+  return (
+    <ContactShadows
+      key={`${quality}-${W}-${D}-${showFurniture}-${layout.items.length}`}
+      position={[W / 2, 0.014, -D / 2]}
+      scale={[W, D]}
+      resolution={quality === 'high' ? 2048 : 1024}
+      frames={1}
+      far={1.0}
+      blur={2.2}
+      opacity={0.6}
+      color="#2b1d12"
+    />
   );
 }
 
@@ -166,7 +206,9 @@ export function FasciaSign() {
   const { width: W, ceilingHeight: H } = layout.room;
   const door = layout.room.facade.door;
   const dc = (door.x0 + door.x1) / 2;
-  const sign = useMemo(() => textTexture('YOUR BRAND', { bg: PALETTE.walnut, fg: '#f4eee4', sub: 'TRAVEL · placeholder', w: 1024, h: 192 }), []);
+  const brandName = useStore((s) => s.brandName);
+  const tagline = useStore((s) => s.brandTagline);
+  const sign = useMemo(() => textTexture(brandName || ' ', { bg: PALETTE.walnut, fg: '#f4eee4', sub: tagline, w: 1024, h: 192 }), [brandName, tagline]);
   useEffect(() => () => sign.dispose(), [sign]);
   const T = WALL_THICKNESS;
   const signW = Math.min(3.4, W - 1);

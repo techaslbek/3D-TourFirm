@@ -92,7 +92,7 @@ numbered.forEach((i, n) => {
     add(`<rect x="${X(i.x - i.w / 2)}" y="${Y(i.y + i.d / 2)}" width="${i.w * S}" height="${i.d * S}" rx="2" fill="${fill}" stroke="${C.stroke}" stroke-width="1.2"${dash}/>`);
   }
   // Seat-direction tick for seating
-  if (i.faces) {
+  if (i.faces && i.cat === 'seating') {
     const v = { '+x': [1, 0], '-x': [-1, 0], '+y': [0, 1], '-y': [0, -1] }[i.faces];
     const back = [i.x - v[0] * (i.w / 2 - 0.08), i.y - v[1] * (i.d / 2 - 0.08)];
     const len = (v[0] ? i.d : i.w) * 0.7;
