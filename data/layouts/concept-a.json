@@ -1,0 +1,805 @@
+{
+  "schema": "tourfirm.layout/0.1",
+  "name": "Concept A: Caravanserai Lounge",
+  "status": "ASSUMED layout for a hypothetical unit. No real unit has been measured.",
+  "units": "metres",
+  "coordinateSystem": "Origin = front-left interior corner. x runs along the street facade (0 to width). y runs into the room (0 = facade, depth = back wall). Footprints are axis-aligned: w = extent along x, d = extent along y, both already rotated.",
+  "room": {
+    "width": 10.0,
+    "depth": 6.0,
+    "ceilingHeight": 3.0,
+    "ceilingHeightNote": "Assumed. Measure on site.",
+    "facade": {
+      "wall": "front",
+      "windows": [
+        {
+          "id": "win-left",
+          "x0": 0.3,
+          "x1": 4.4,
+          "sill": 0.3,
+          "head": 2.6
+        },
+        {
+          "id": "win-right",
+          "x0": 5.6,
+          "x1": 9.7,
+          "sill": 0.3,
+          "head": 2.6
+        }
+      ],
+      "door": {
+        "id": "door-main",
+        "x0": 4.5,
+        "x1": 5.5,
+        "clearWidth": 0.9,
+        "leaf": 1.0,
+        "hinge": "right",
+        "swing": "inward",
+        "note": "Swing direction must be checked against local egress rules. An outward swing over the pavement may need the city's approval."
+      }
+    }
+  },
+  "partitions": [
+    {
+      "id": "part-storage-front",
+      "label": "Storage room wall",
+      "x0": 0.0,
+      "x1": 2.35,
+      "y0": 3.95,
+      "y1": 4.05,
+      "openings": [
+        {
+          "id": "door-storage",
+          "x0": 1.3,
+          "x1": 2.1,
+          "type": "sliding",
+          "note": "Surface-mounted sliding door, so no swing conflicts with shelving"
+        }
+      ]
+    },
+    {
+      "id": "part-storage-side",
+      "label": "Storage room wall",
+      "x0": 2.25,
+      "x1": 2.35,
+      "y0": 4.05,
+      "y1": 6.0,
+      "openings": []
+    }
+  ],
+  "zones": [
+    {
+      "id": "z-lounge",
+      "label": "Client lounge",
+      "x0": 0.0,
+      "y0": 0.0,
+      "x1": 3.9,
+      "y1": 2.7,
+      "color": "#E0A43A",
+      "labelAt": [
+        0.45,
+        2.55
+      ]
+    },
+    {
+      "id": "z-entry",
+      "label": "Entry and welcome",
+      "x0": 3.9,
+      "y0": 0.0,
+      "x1": 6.1,
+      "y1": 2.7,
+      "color": "#6E7B4E",
+      "labelAt": [
+        4.0,
+        2.55
+      ]
+    },
+    {
+      "id": "z-inspire",
+      "label": "Destination wall",
+      "x0": 6.1,
+      "y0": 0.0,
+      "x1": 10.0,
+      "y1": 2.7,
+      "color": "#2A8C8C",
+      "labelAt": [
+        6.2,
+        2.55
+      ]
+    },
+    {
+      "id": "z-service",
+      "label": "Service and tea",
+      "x0": 0.0,
+      "y0": 2.7,
+      "x1": 5.3,
+      "y1": 6.0,
+      "color": "#B85C3C",
+      "labelAt": [
+        2.5,
+        3.6
+      ]
+    },
+    {
+      "id": "z-consult",
+      "label": "Consultation (2 desks)",
+      "x0": 5.3,
+      "y0": 2.7,
+      "x1": 10.0,
+      "y1": 6.0,
+      "color": "#1F4E8C",
+      "labelAt": [
+        5.4,
+        2.8
+      ]
+    }
+  ],
+  "items": [
+    {
+      "id": "rug-lounge",
+      "label": "Uzbek carpet 3.0x2.0",
+      "cat": "decor",
+      "layer": "rug",
+      "x": 2.0,
+      "y": 1.35,
+      "w": 3.0,
+      "d": 2.0,
+      "h": 0.01
+    },
+    {
+      "id": "sofa",
+      "label": "3-seat sofa",
+      "cat": "seating",
+      "layer": "floor",
+      "x": 2.0,
+      "y": 0.75,
+      "w": 2.0,
+      "d": 0.9,
+      "h": 0.8,
+      "faces": "+y"
+    },
+    {
+      "id": "coffee-table",
+      "label": "Coffee table",
+      "cat": "tables",
+      "layer": "floor",
+      "x": 2.0,
+      "y": 1.95,
+      "w": 1.0,
+      "d": 0.6,
+      "h": 0.42
+    },
+    {
+      "id": "armchair-l",
+      "label": "Armchair",
+      "cat": "seating",
+      "layer": "floor",
+      "x": 0.75,
+      "y": 1.95,
+      "w": 0.8,
+      "d": 0.8,
+      "h": 0.8,
+      "faces": "+x"
+    },
+    {
+      "id": "armchair-r",
+      "label": "Armchair",
+      "cat": "seating",
+      "layer": "floor",
+      "x": 3.25,
+      "y": 1.95,
+      "w": 0.8,
+      "d": 0.8,
+      "h": 0.8,
+      "faces": "-x"
+    },
+    {
+      "id": "side-table",
+      "label": "Side table (USB charging)",
+      "cat": "tables",
+      "layer": "floor",
+      "x": 0.55,
+      "y": 0.75,
+      "w": 0.45,
+      "d": 0.45,
+      "h": 0.55,
+      "shape": "round"
+    },
+    {
+      "id": "floor-lamp",
+      "label": "Floor lamp",
+      "cat": "lighting",
+      "layer": "floor",
+      "x": 3.35,
+      "y": 0.55,
+      "w": 0.35,
+      "d": 0.35,
+      "h": 1.6,
+      "shape": "round"
+    },
+    {
+      "id": "lattice-screen",
+      "label": "Carved wood lattice screen",
+      "cat": "decor",
+      "layer": "floor",
+      "x": 1.1,
+      "y": 2.75,
+      "w": 1.8,
+      "d": 0.05,
+      "h": 2.0
+    },
+    {
+      "id": "plant-lounge",
+      "label": "Tall plant",
+      "cat": "plants",
+      "layer": "floor",
+      "x": 0.35,
+      "y": 3.3,
+      "w": 0.5,
+      "d": 0.5,
+      "h": 1.6,
+      "shape": "round"
+    },
+    {
+      "id": "coat-stand",
+      "label": "Coat stand",
+      "cat": "accessories",
+      "layer": "floor",
+      "x": 6.4,
+      "y": 0.45,
+      "w": 0.5,
+      "d": 0.5,
+      "h": 1.8,
+      "shape": "round"
+    },
+    {
+      "id": "umbrella-stand",
+      "label": "Umbrella stand",
+      "cat": "accessories",
+      "layer": "floor",
+      "x": 6.85,
+      "y": 0.4,
+      "w": 0.28,
+      "d": 0.28,
+      "h": 0.6,
+      "shape": "round"
+    },
+    {
+      "id": "window-bench",
+      "label": "Window bench with cushion",
+      "cat": "seating",
+      "layer": "floor",
+      "x": 8.2,
+      "y": 0.425,
+      "w": 2.4,
+      "d": 0.45,
+      "h": 0.45
+    },
+    {
+      "id": "display-unit",
+      "label": "Low display cabinet",
+      "cat": "storage",
+      "layer": "floor",
+      "x": 9.8,
+      "y": 1.6,
+      "w": 0.4,
+      "d": 1.2,
+      "h": 0.9
+    },
+    {
+      "id": "plant-right",
+      "label": "Tall plant",
+      "cat": "plants",
+      "layer": "floor",
+      "x": 9.7,
+      "y": 0.45,
+      "w": 0.5,
+      "d": 0.5,
+      "h": 1.6,
+      "shape": "round"
+    },
+    {
+      "id": "desk-1",
+      "label": "Consultant desk 1",
+      "cat": "desks",
+      "layer": "floor",
+      "x": 6.3,
+      "y": 4.05,
+      "w": 1.4,
+      "d": 0.7,
+      "h": 0.75
+    },
+    {
+      "id": "desk-2",
+      "label": "Consultant desk 2",
+      "cat": "desks",
+      "layer": "floor",
+      "x": 9.1,
+      "y": 4.05,
+      "w": 1.4,
+      "d": 0.7,
+      "h": 0.75
+    },
+    {
+      "id": "staff-chair-1",
+      "label": "Ergonomic chair",
+      "cat": "seating",
+      "layer": "floor",
+      "x": 6.3,
+      "y": 4.85,
+      "w": 0.65,
+      "d": 0.65,
+      "h": 1.1,
+      "faces": "-y"
+    },
+    {
+      "id": "staff-chair-2",
+      "label": "Ergonomic chair",
+      "cat": "seating",
+      "layer": "floor",
+      "x": 9.1,
+      "y": 4.85,
+      "w": 0.65,
+      "d": 0.65,
+      "h": 1.1,
+      "faces": "-y"
+    },
+    {
+      "id": "visitor-1a",
+      "label": "Visitor chair",
+      "cat": "seating",
+      "layer": "floor",
+      "x": 5.95,
+      "y": 3.3,
+      "w": 0.55,
+      "d": 0.55,
+      "h": 0.82,
+      "faces": "+y"
+    },
+    {
+      "id": "visitor-1b",
+      "label": "Visitor chair",
+      "cat": "seating",
+      "layer": "floor",
+      "x": 6.65,
+      "y": 3.3,
+      "w": 0.55,
+      "d": 0.55,
+      "h": 0.82,
+      "faces": "+y"
+    },
+    {
+      "id": "visitor-2a",
+      "label": "Visitor chair",
+      "cat": "seating",
+      "layer": "floor",
+      "x": 8.75,
+      "y": 3.3,
+      "w": 0.55,
+      "d": 0.55,
+      "h": 0.82,
+      "faces": "+y"
+    },
+    {
+      "id": "visitor-2b",
+      "label": "Visitor chair",
+      "cat": "seating",
+      "layer": "floor",
+      "x": 9.45,
+      "y": 3.3,
+      "w": 0.55,
+      "d": 0.55,
+      "h": 0.82,
+      "faces": "+y"
+    },
+    {
+      "id": "credenza-1",
+      "label": "Lockable credenza",
+      "cat": "storage",
+      "layer": "floor",
+      "x": 6.3,
+      "y": 5.775,
+      "w": 1.2,
+      "d": 0.45,
+      "h": 0.75
+    },
+    {
+      "id": "credenza-2",
+      "label": "Lockable credenza",
+      "cat": "storage",
+      "layer": "floor",
+      "x": 9.1,
+      "y": 5.775,
+      "w": 1.2,
+      "d": 0.45,
+      "h": 0.75
+    },
+    {
+      "id": "acoustic-screen",
+      "label": "Acoustic felt screen (2 panels)",
+      "cat": "acoustics",
+      "layer": "floor",
+      "x": 7.725,
+      "y": 4.1,
+      "w": 0.05,
+      "d": 1.8,
+      "h": 1.4
+    },
+    {
+      "id": "tea-counter",
+      "label": "Tea station counter (under-counter fridge)",
+      "cat": "beverage",
+      "layer": "floor",
+      "x": 3.2,
+      "y": 5.7,
+      "w": 1.4,
+      "d": 0.6,
+      "h": 0.9
+    },
+    {
+      "id": "water-cooler",
+      "label": "Water cooler (19 L bottle)",
+      "cat": "beverage",
+      "layer": "floor",
+      "x": 4.18,
+      "y": 5.78,
+      "w": 0.35,
+      "d": 0.35,
+      "h": 1.1
+    },
+    {
+      "id": "tall-cab-1",
+      "label": "Tall lockable cabinet",
+      "cat": "storage",
+      "layer": "floor",
+      "x": 0.45,
+      "y": 5.8,
+      "w": 0.8,
+      "d": 0.4,
+      "h": 2.0
+    },
+    {
+      "id": "shelving",
+      "label": "Open shelving (brochures, supplies)",
+      "cat": "storage",
+      "layer": "floor",
+      "x": 1.3,
+      "y": 5.825,
+      "w": 0.8,
+      "d": 0.35,
+      "h": 2.0
+    },
+    {
+      "id": "cleaning-cab",
+      "label": "Cleaning cupboard",
+      "cat": "storage",
+      "layer": "floor",
+      "x": 0.25,
+      "y": 4.65,
+      "w": 0.4,
+      "d": 0.6,
+      "h": 2.0
+    },
+    {
+      "id": "printer",
+      "label": "Printer/scanner (MFP) on stand",
+      "cat": "equipment",
+      "layer": "floor",
+      "x": 1.95,
+      "y": 5.2,
+      "w": 0.5,
+      "d": 0.5,
+      "h": 1.0
+    },
+    {
+      "id": "safe",
+      "label": "Small safe",
+      "cat": "security",
+      "layer": "floor",
+      "x": 2.0,
+      "y": 5.75,
+      "w": 0.4,
+      "d": 0.4,
+      "h": 0.5
+    },
+    {
+      "id": "bin-lounge",
+      "label": "Waste bin",
+      "cat": "accessories",
+      "layer": "floor",
+      "x": 0.35,
+      "y": 2.5,
+      "w": 0.25,
+      "d": 0.25,
+      "h": 0.4,
+      "shape": "round"
+    },
+    {
+      "id": "bin-desk-1",
+      "label": "Waste bin (under desk)",
+      "cat": "accessories",
+      "layer": "under",
+      "x": 5.75,
+      "y": 4.2,
+      "w": 0.25,
+      "d": 0.25,
+      "h": 0.4,
+      "shape": "round"
+    },
+    {
+      "id": "bin-desk-2",
+      "label": "Waste bin (under desk)",
+      "cat": "accessories",
+      "layer": "under",
+      "x": 9.65,
+      "y": 4.2,
+      "w": 0.25,
+      "d": 0.25,
+      "h": 0.4,
+      "shape": "round"
+    },
+    {
+      "id": "bin-tea",
+      "label": "Pull-out bin (inside tea counter)",
+      "cat": "accessories",
+      "layer": "under",
+      "x": 3.7,
+      "y": 5.7,
+      "w": 0.25,
+      "d": 0.25,
+      "h": 0.4,
+      "shape": "round"
+    }
+  ],
+  "wallItems": [
+    {
+      "id": "suzani-1",
+      "label": "Framed suzani panel",
+      "wall": "left",
+      "at": 1.6,
+      "width": 1.4,
+      "z0": 1.0,
+      "z1": 2.1
+    },
+    {
+      "id": "tv",
+      "label": "TV 50\" destination loop",
+      "wall": "right",
+      "at": 1.6,
+      "width": 1.12,
+      "z0": 1.3,
+      "z1": 1.95
+    },
+    {
+      "id": "posters",
+      "label": "Destination posters (editable)",
+      "wall": "right",
+      "at": 0.5,
+      "width": 0.6,
+      "z0": 1.1,
+      "z1": 1.9
+    },
+    {
+      "id": "brand-wall",
+      "label": "Brand / logo panel (placeholder)",
+      "wall": "back",
+      "at": 5.0,
+      "width": 1.2,
+      "z0": 1.4,
+      "z1": 2.2
+    },
+    {
+      "id": "extinguisher-1",
+      "label": "Fire extinguisher",
+      "wall": "partition-east",
+      "at": 4.4,
+      "width": 0.2,
+      "z0": 0.3,
+      "z1": 0.9
+    },
+    {
+      "id": "extinguisher-2",
+      "label": "Fire extinguisher",
+      "wall": "right",
+      "at": 2.95,
+      "width": 0.2,
+      "z0": 0.3,
+      "z1": 0.9
+    },
+    {
+      "id": "first-aid",
+      "label": "First-aid kit",
+      "wall": "back",
+      "at": 3.2,
+      "width": 0.3,
+      "z0": 1.4,
+      "z1": 1.7
+    },
+    {
+      "id": "evac-plan",
+      "label": "Evacuation plan + exit sign",
+      "wall": "front",
+      "at": 5.0,
+      "width": 0.4,
+      "z0": 2.15,
+      "z1": 2.35
+    },
+    {
+      "id": "hooks-staff",
+      "label": "Staff coat hooks",
+      "wall": "storage-inside",
+      "at": 3.1,
+      "width": 0.6,
+      "z0": 1.6,
+      "z1": 1.8
+    },
+    {
+      "id": "ac-1",
+      "label": "Split AC indoor unit (lounge)",
+      "wall": "left",
+      "at": 2.2,
+      "width": 0.9,
+      "z0": 2.45,
+      "z1": 2.75
+    },
+    {
+      "id": "ac-2",
+      "label": "Split AC indoor unit (desks)",
+      "wall": "back",
+      "at": 7.725,
+      "width": 0.9,
+      "z0": 2.45,
+      "z1": 2.75
+    },
+    {
+      "id": "router",
+      "label": "Router / Wi-Fi + network shelf",
+      "wall": "storage-inside",
+      "at": 4.5,
+      "width": 0.4,
+      "z0": 1.9,
+      "z1": 2.2
+    }
+  ],
+  "ceiling": [
+    {
+      "id": "raft",
+      "label": "Oak slat ceiling raft (h 2.75)",
+      "x0": 5.3,
+      "y0": 2.9,
+      "x1": 10.0,
+      "y1": 6.0
+    },
+    {
+      "id": "pendant-1",
+      "label": "Pendant",
+      "x": 6.3,
+      "y": 4.05
+    },
+    {
+      "id": "pendant-2",
+      "label": "Pendant",
+      "x": 9.1,
+      "y": 4.05
+    },
+    {
+      "id": "pendant-3",
+      "label": "Pendant",
+      "x": 2.0,
+      "y": 1.95
+    }
+  ],
+  "routes": [
+    {
+      "id": "r-desk-1",
+      "label": "Entrance to desk 1 (aisle in front of visitor seats)",
+      "to": [
+        6.3,
+        2.4
+      ],
+      "minWidth": 1.2,
+      "audience": "clients"
+    },
+    {
+      "id": "r-desk-2",
+      "label": "Entrance to desk 2 (aisle in front of visitor seats)",
+      "to": [
+        8.8,
+        2.4
+      ],
+      "minWidth": 1.2,
+      "audience": "clients"
+    },
+    {
+      "id": "r-lounge",
+      "label": "Entrance to lounge",
+      "to": [
+        3.3,
+        2.85
+      ],
+      "minWidth": 0.9,
+      "audience": "clients"
+    },
+    {
+      "id": "r-tea",
+      "label": "Entrance to tea station",
+      "to": [
+        3.2,
+        4.9
+      ],
+      "minWidth": 0.9,
+      "audience": "staff"
+    },
+    {
+      "id": "r-storage",
+      "label": "Entrance to storage door",
+      "to": [
+        1.7,
+        3.5
+      ],
+      "minWidth": 0.9,
+      "audience": "staff"
+    },
+    {
+      "id": "r-printer",
+      "label": "Entrance to printer (inside storage room)",
+      "to": [
+        1.5,
+        4.5
+      ],
+      "minWidth": 0.75,
+      "audience": "staff"
+    },
+    {
+      "id": "r-staff-1",
+      "label": "Entrance to staff chair 1",
+      "to": [
+        5.1,
+        4.85
+      ],
+      "minWidth": 0.9,
+      "audience": "staff"
+    },
+    {
+      "id": "r-staff-2",
+      "label": "Entrance to staff chair 2 (behind screen)",
+      "to": [
+        8.075,
+        4.85
+      ],
+      "minWidth": 0.6,
+      "audience": "staff"
+    }
+  ],
+  "checks": {
+    "entryTurningCircle": {
+      "x": 5.0,
+      "y": 1.6,
+      "r": 0.75
+    },
+    "routeStart": [
+      5.0,
+      1.2
+    ],
+    "pairClearances": [
+      {
+        "a": "desk-1",
+        "b": "credenza-1",
+        "min": 1.0,
+        "label": "Desk 1 to credenza (staff chair zone)"
+      },
+      {
+        "a": "desk-2",
+        "b": "credenza-2",
+        "min": 1.0,
+        "label": "Desk 2 to credenza (staff chair zone)"
+      },
+      {
+        "a": "sofa",
+        "b": "coffee-table",
+        "min": 0.4,
+        "label": "Sofa to coffee table (knee space)"
+      }
+    ]
+  }
+}
